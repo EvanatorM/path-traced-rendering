@@ -6,15 +6,13 @@
 class Scene
 {
 public:
-    void AddObject(SceneObject&& object)
-    {
-        _objects.push_back(std::move(object));
-    }
-    void AddObject(const SceneObject& object)
+    void AddObject(SceneObject* object)
     {
         _objects.push_back(object);
     }
+    
+    const std::vector<SceneObject*>& GetObjects() const { return _objects; }
 
 private:
-    std::vector<SceneObject> _objects;
+    std::vector<SceneObject*> _objects;
 };
