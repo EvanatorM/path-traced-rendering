@@ -1,3 +1,5 @@
+#include <Scene.h>
+#include <Sphere.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -5,7 +7,8 @@
 
 int main()
 {
-    std::cout << "Hello World\n";
+    Scene scene;
+    scene.AddObject(Sphere{ 1.0f });
 
     std::vector<unsigned char> data = {
         255, 0, 0,   // Red pixel
@@ -28,4 +31,6 @@ int main()
     file.write(reinterpret_cast<const char*>(header.data()), header.size());
     file.write(reinterpret_cast<const char*>(data.data()), data.size());
     file.close();
+
+    std::cout << "Image successfully written to output.ppm\n";
 }
