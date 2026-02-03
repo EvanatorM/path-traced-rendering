@@ -1,9 +1,9 @@
 #pragma once
 
-class PathTracer
-{
-public:
-    
+#include <Scene.h>
+#include <Image.h>
 
-private:
-};
+namespace PathTracer
+{
+    void PathTrace(const Scene& scene, Image& image);
+}
