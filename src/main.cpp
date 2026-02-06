@@ -1,31 +1,31 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <cstdint>
+#include <Scene.h>
+#include <Sphere.h>
+#include <Image.h>
+#include <PathTracer.h>
 
 int main()
 {
-    std::cout << "Hello World\n";
+    Scene scene;
+    scene.AddObject(new Sphere(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0.25f));
+    scene.AddObject(new Sphere(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f));
+    scene.AddObject(new Sphere(glm::vec3(1.0f, 0.0f, -8.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1.0f));
+    scene.AddObject(new Sphere(glm::vec3(-1.0f, -1.0f, -8.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.5f));
 
-    std::vector<unsigned char> data = {
-        255, 0, 0,   // Red pixel
-        0, 255, 0,   // Green pixel
-        0, 0, 255,   // Blue pixel
-        255, 255, 0  // Yellow pixel
-    };
-    uint32_t imageSize = data.size();
-
-    std::ofstream file("output.ppm", std::ios::binary);
-    if (!file)
+    Sphere sphere(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(1.0f), 1.0f);
+    Ray ray(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
+    float t;
+    if (sphere.Intersect(ray, t))
     {
-        std::cerr << "Error creating file\n";
-        return 1;
+        std::cout << "Ray intersects sphere at t = " << t << "\n";
+    }
+    else
+    {
+        std::cout << "Ray does not intersect sphere\n";
     }
 
-    // https://my.eng.utah.edu/~cs5610/ppm.html
-    std::string header = "P6\n2 2\n255\n";
+    Camera camera;
 
-    file.write(reinterpret_cast<const char*>(header.data()), header.size());
-    file.write(reinterpret_cast<const char*>(data.data()), data.size());
-    file.close();
+    Image image(1280, 720);
+    PathTracer::PathTrace(scene, camera, image);
+    image.SaveToPPM("output.ppm");
 }
