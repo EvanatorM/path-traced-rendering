@@ -9,6 +9,7 @@ int main()
     scene.AddObject(new Sphere(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0.25f));
     scene.AddObject(new Sphere(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f));
     scene.AddObject(new Sphere(glm::vec3(1.0f, 0.0f, -8.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1.0f));
+    scene.AddObject(new Sphere(glm::vec3(-1.0f, -1.0f, -8.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.5f));
 
     Sphere sphere(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(1.0f), 1.0f);
     Ray ray(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f));
@@ -22,7 +23,9 @@ int main()
         std::cout << "Ray does not intersect sphere\n";
     }
 
-    Image image(1024, 1024);
-    PathTracer::PathTrace(scene, image);
+    Camera camera;
+
+    Image image(1280, 720);
+    PathTracer::PathTrace(scene, camera, image);
     image.SaveToPPM("output.ppm");
 }

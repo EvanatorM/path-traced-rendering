@@ -8,7 +8,7 @@
 class Image
 {
 public:
-    Image(int width, int height) : width(width), height(height), _data(width * height * 3, 0) {}
+    Image(int width, int height) : width(width), height(height), _data(width * height * 3, 0), aspectRatio(width / (float)height) {}
 
     void SetPixel(int x, int y, unsigned char r, unsigned char g, unsigned char b)
     {
@@ -39,6 +39,7 @@ public:
 
     int width;
     int height;
+    float aspectRatio;
 
 private:
     std::vector<unsigned char> _data;
