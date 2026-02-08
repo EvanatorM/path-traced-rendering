@@ -11,7 +11,7 @@ struct Plane : public SceneObject
     Plane()
         : SceneObject(), orientation(glm::vec3(0.0f)) {}
 
-    // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
+    // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection.html
     bool Intersect(const Ray& ray, float& t) const override
     {
         float denom = glm::dot(orientation, ray.direction);

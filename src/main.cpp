@@ -3,6 +3,8 @@
 #include <Plane.h>
 #include <Image.h>
 #include <PathTracer.h>
+#include <Renderer.h>
+#include <Window.h>
 
 int main()
 {
@@ -18,4 +20,21 @@ int main()
     Image image(1280, 720);
     PathTracer::PathTrace(scene, camera, image);
     image.SaveToPPM("output.ppm");
+
+    // Create window
+    Renderer::Init();
+    Window::InitWindow(640, 400, "Path Traced Renderer");
+    auto& window = Window::GetInstance();
+    
+    while (!window.ShouldClose())
+    {
+        // Clear window
+        window.Clear();
+
+        // End-of-frame logic
+        window.SwapBuffers();
+        window.PollEvents();
+    }
+
+    Renderer::Shutdown();
 }

@@ -17,9 +17,16 @@ macro(_add_engine_git_module NAME REPO COMMIT)
   FetchContent_MakeAvailable(${NAME})
 endmacro()
 
+# Add glad
+_add_engine_git_module(glad https://github.com/Dav1dde/glad.git 5bf3eda)
+
 add_executable(PathTracer
     src/main.cpp
     src/PathTracer.cpp
+    src/Renderer.cpp
+    src/Window.cpp
+
+    ${glad_SOURCE_DIR}/src/glad.c
 )
 
 target_include_directories(PathTracer PRIVATE include)
@@ -27,3 +34,11 @@ target_include_directories(PathTracer PRIVATE include)
 _add_engine_git_module(glm https://github.com/g-truc/glm.git 1.0.1)
 target_include_directories(PathTracer PRIVATE ${glm_SOURCE_DIR})
 target_link_libraries(PathTracer PRIVATE glm::glm)
+
+# Finish adding glad
+target_include_directories(PathTracer PUBLIC ${glad_SOURCE_DIR}/include)
+
+# Add GLFW
+_add_engine_git_module(GLFW https://github.com/glfw/glfw.git 3.4)
+target_link_libraries(PathTracer PUBLIC glfw)
+target_include_directories(PathTracer PUBLIC ${glfw_SOURCE_DIR}/include)
