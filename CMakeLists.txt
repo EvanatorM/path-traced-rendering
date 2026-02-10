@@ -21,9 +21,11 @@ endmacro()
 _add_engine_git_module(glad https://github.com/Dav1dde/glad.git 5bf3eda)
 
 add_executable(PathTracer
+    src/ComputeShader.cpp
     src/main.cpp
     src/PathTracer.cpp
     src/Renderer.cpp
+    src/Shader.cpp
     src/Window.cpp
 
     ${glad_SOURCE_DIR}/src/glad.c
