@@ -44,3 +44,12 @@ target_include_directories(PathTracer PUBLIC ${glad_SOURCE_DIR}/include)
 _add_engine_git_module(GLFW https://github.com/glfw/glfw.git 3.4)
 target_link_libraries(PathTracer PUBLIC glfw)
 target_include_directories(PathTracer PUBLIC ${glfw_SOURCE_DIR}/include)
+
+# Copy assets folder to build folder
+add_custom_command(
+  TARGET PathTracer POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_directory 
+    ${CMAKE_SOURCE_DIR}/assets
+    $<TARGET_FILE_DIR:PathTracer>/assets
+  COMMENT "Copying assets"
+)
