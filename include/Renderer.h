@@ -6,4 +6,6 @@ public:
     static void Init();
     static void PostWindowInit();
     static void Shutdown();
+
+    static double GetTime();
 };

@@ -25,13 +25,14 @@ int main()
     PathTracer::PathTrace(scene, camera, image);
     image.SaveToPPM("output.ppm");
 
+    const unsigned int TEXTURE_WIDTH = 1000, TEXTURE_HEIGHT = 1000;
+
     // Create window
     Renderer::Init();
-    Window::InitWindow(512, 512, "Path Traced Renderer");
+    Window::InitWindow(TEXTURE_WIDTH, TEXTURE_HEIGHT, "Path Traced Renderer");
     auto& window = Window::GetInstance();
 
     // Create test texture
-    const unsigned int TEXTURE_WIDTH = 512, TEXTURE_HEIGHT = 512;
     
     unsigned int texture;
     glGenTextures(1, &texture);
@@ -77,14 +78,23 @@ int main()
     Shader shader("assets/shaders/quad.vert", "assets/shaders/quad.frag");
     shader.SetInt("tex", 0);
 
+    float deltaTime = 0;
+    float lastFrame = 0;
+
     while (!window.ShouldClose())
     {
+        // Set frame time
+        float currentFrame = Renderer::GetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
         // Clear window
         window.Clear();
 
         // Run compute shader
         computeShader.Bind();
-        glDispatchCompute((unsigned int)TEXTURE_WIDTH, (unsigned int)TEXTURE_HEIGHT, 1);
+        computeShader.SetFloat("t", currentFrame);
+        glDispatchCompute((unsigned int)TEXTURE_WIDTH/10, (unsigned int)TEXTURE_HEIGHT/10, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         // Render quad

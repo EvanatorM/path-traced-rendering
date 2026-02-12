@@ -23,3 +23,8 @@ void Renderer::Shutdown()
 {
     glfwTerminate();
 }
+
+double Renderer::GetTime()
+{
+    return glfwGetTime();
+}
