@@ -17,6 +17,12 @@ struct Sphere {
     vec4 color;
 };
 
+struct Plane {
+    vec3 offset;
+    vec3 orientation;
+    vec4 color;
+};
+
 bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t)
 {
     float t0, t1;
@@ -48,14 +54,31 @@ bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t)
     return true;
 }
 
+bool intersectPlane(vec3 ro, vec3 rd, Plane p, out float t)
+{
+    float denom = dot(p.orientation, rd);
+    if (denom > 1e-6)
+    {
+        vec3 p010 = p.offset - ro;
+        t = dot(p010, p.orientation) / denom;
+        return (t >= 0);
+    }
+
+    return false;
+}
+
 Sphere spheres[] = {
     Sphere(vec3(0.0, 0.0, -5.0), 1.0, vec4(1.0, 1.0, 1.0, 1.0)),
-    Sphere(vec3(1.0, 0.0, -4.0), 0.5, vec4(0.4, 0.5, 1.0, 1.0)),
+    Sphere(vec3(1.0, 0.5, -4.0), 0.5, vec4(0.4, 0.5, 1.0, 1.0)),
     Sphere(vec3(0.0, 0.0, 5.0), 1.0, vec4(1.0, 0.0, 0.0, 1.0)),
     Sphere(vec3(5.0, 0.0, 0.0), 1.0, vec4(0.0, 1.0, 0.0, 1.0)),
     Sphere(vec3(-5.0, 0.0, 0.0), 1.0, vec4(0.0, 0.0, 1.0, 1.0)),
     Sphere(vec3(0.0, 5.0, 0.0), 1.0, vec4(0.0, 1.0, 1.0, 1.0)),
     Sphere(vec3(0.0, -5.0, 0.0), 1.0, vec4(1.0, 0.0, 1.0, 1.0)),
+};
+
+Plane planes[] = {
+    Plane(vec3(0.0, -1.0, 0.0), vec3(0.0, -1.0, 0.0), vec4(0.5, 0.5, 0.5, 1.0)),
 };
 
 void main()
@@ -88,6 +111,19 @@ void main()
             {
                 nearestT = t;
                 finalColor = spheres[i].color.rgb;
+            }
+        }
+    }
+
+    for (int i = 0; i < 1; i++)
+    {
+        float t;
+        if (intersectPlane(rayOriginWorld, rayDir, planes[i], t))
+        {
+            if (t < nearestT)
+            {
+                nearestT = t;
+                finalColor = planes[i].color.rgb;
             }
         }
     }
