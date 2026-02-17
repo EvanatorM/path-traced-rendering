@@ -19,7 +19,7 @@ int main()
     scene.AddObject(new Sphere(glm::vec3(1.0f, 0.0f, -8.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1.0f));
     scene.AddObject(new Sphere(glm::vec3(-1.0f, -1.0f, -8.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.5f));
 
-    Camera camera;
+    Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.1f));
 
     Image image(1280, 720);
     PathTracer::PathTrace(scene, camera, image);
@@ -86,9 +86,11 @@ int main()
 
     glm::vec3 rayOriginWorld = glm::vec3(cameraToWorld * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
+    computeShader.Bind();
     computeShader.SetMat4("cameraToWorld", cameraToWorld);
     computeShader.SetVec3("rayOriginWorld", rayOriginWorld);
-    computeShader.SetFloat("fov", 90.0f);
+    computeShader.SetFloat("fov", camera.fov);
+    computeShader.SetVec3("backgroundColor", camera.backgroundColor);
 
     float deltaTime = 0;
     float lastFrame = 0;
