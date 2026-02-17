@@ -25,7 +25,7 @@ int main()
     PathTracer::PathTrace(scene, camera, image);
     image.SaveToPPM("output.ppm");
 
-    const unsigned int TEXTURE_WIDTH = 1000, TEXTURE_HEIGHT = 1000;
+    const unsigned int TEXTURE_WIDTH = 1024, TEXTURE_HEIGHT = 1024;
 
     // Create window
     Renderer::Init();
@@ -93,8 +93,7 @@ int main()
 
         // Run compute shader
         computeShader.Bind();
-        computeShader.SetFloat("t", currentFrame);
-        glDispatchCompute((unsigned int)TEXTURE_WIDTH/10, (unsigned int)TEXTURE_HEIGHT/10, 1);
+        glDispatchCompute((unsigned int)TEXTURE_WIDTH/16, (unsigned int)TEXTURE_HEIGHT/16, 1);
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
         // Render quad
