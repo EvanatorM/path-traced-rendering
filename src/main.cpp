@@ -78,6 +78,18 @@ int main()
     Shader shader("assets/shaders/quad.vert", "assets/shaders/quad.frag");
     shader.SetInt("tex", 0);
 
+    // TEMP - Set compute shader variables
+    glm::vec3 target = camera.position + camera.direction;
+    glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::mat4 viewMatrix = glm::lookAt(camera.position, target, worldUp);
+    glm::mat4 cameraToWorld = glm::inverse(viewMatrix);
+
+    glm::vec3 rayOriginWorld = glm::vec3(cameraToWorld * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+    computeShader.SetMat4("cameraToWorld", cameraToWorld);
+    computeShader.SetVec3("rayOriginWorld", rayOriginWorld);
+    computeShader.SetFloat("fov", 90.0f);
+
     float deltaTime = 0;
     float lastFrame = 0;
 

@@ -18,8 +18,6 @@ namespace PathTracer
         glm::vec3 rayOriginWorld = glm::vec3(cameraToWorld * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 
         auto objects = scene.GetObjects();
-        float sx = 3.0f / outputImage.width;
-        float sy = 3.0f / outputImage.height;
         for (int x = 0; x < outputImage.width; x++)
         {
             for (int y = 0; y < outputImage.height; y++)
