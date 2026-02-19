@@ -92,6 +92,19 @@ int main()
     computeShader.SetFloat("fov", camera.fov);
     computeShader.SetVec3("backgroundColor", camera.backgroundColor);
 
+    // Pass spheres
+    std::vector<float> gpuSpheres = {
+        0.0f, 0.0f, -5.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+        1.0f, 0.5f, -4.0f, 0.5f, 0.4f, 0.5f, 1.0f, 1.0f
+    };
+
+    GLuint spheresBuffer;
+    glCreateBuffers(1, &spheresBuffer);
+    glNamedBufferStorage(spheresBuffer, sizeof(float) * gpuSpheres.size(), (const void*)gpuSpheres.data(), GL_DYNAMIC_STORAGE_BIT);
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spheresBuffer);
+    computeShader.SetInt("numSpheres", 2);
+
     float deltaTime = 0;
     float lastFrame = 0;
 

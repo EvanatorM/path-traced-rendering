@@ -23,6 +23,12 @@ struct Plane {
     vec4 color;
 };
 
+layout(std430, binding = 1) buffer sphereBuffer
+{
+    Sphere[] spheres;
+};
+uniform int numSpheres;
+
 bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t)
 {
     float t0, t1;
@@ -67,16 +73,6 @@ bool intersectPlane(vec3 ro, vec3 rd, Plane p, out float t)
     return false;
 }
 
-Sphere spheres[] = {
-    Sphere(vec3(0.0, 0.0, -5.0), 1.0, vec4(1.0, 1.0, 1.0, 1.0)),
-    Sphere(vec3(1.0, 0.5, -4.0), 0.5, vec4(0.4, 0.5, 1.0, 1.0)),
-    Sphere(vec3(0.0, 0.0, 5.0), 1.0, vec4(1.0, 0.0, 0.0, 1.0)),
-    Sphere(vec3(5.0, 0.0, 0.0), 1.0, vec4(0.0, 1.0, 0.0, 1.0)),
-    Sphere(vec3(-5.0, 0.0, 0.0), 1.0, vec4(0.0, 0.0, 1.0, 1.0)),
-    Sphere(vec3(0.0, 5.0, 0.0), 1.0, vec4(0.0, 1.0, 1.0, 1.0)),
-    Sphere(vec3(0.0, -5.0, 0.0), 1.0, vec4(1.0, 0.0, 1.0, 1.0)),
-};
-
 Plane planes[] = {
     Plane(vec3(0.0, -1.0, 0.0), vec3(0.0, -1.0, 0.0), vec4(0.5, 0.5, 0.5, 1.0)),
 };
@@ -102,7 +98,7 @@ void main()
     float nearestT = 1e20;
     vec3 finalColor = backgroundColor;
 
-    for (int i = 0; i < 7; i++)
+    for (int i = 0; i < numSpheres; i++)
     {
         float t;
         if (intersectSphere(rayOriginWorld, rayDir, spheres[i], t))
