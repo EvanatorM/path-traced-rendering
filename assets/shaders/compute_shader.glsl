@@ -19,7 +19,9 @@ struct Sphere {
 
 struct Plane {
     vec3 offset;
+    float padding1;
     vec3 orientation;
+    float padding2;
     vec4 color;
 };
 
@@ -28,6 +30,12 @@ layout(std430, binding = 1) buffer sphereBuffer
     Sphere[] spheres;
 };
 uniform int numSpheres;
+
+layout(std430, binding = 2) buffer planeBuffer
+{
+    Plane[] planes;
+};
+uniform int numPlanes;
 
 bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t)
 {
@@ -73,10 +81,6 @@ bool intersectPlane(vec3 ro, vec3 rd, Plane p, out float t)
     return false;
 }
 
-Plane planes[] = {
-    Plane(vec3(0.0, -1.0, 0.0), vec3(0.0, -1.0, 0.0), vec4(0.5, 0.5, 0.5, 1.0)),
-};
-
 void main()
 {
     ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
@@ -111,7 +115,7 @@ void main()
         }
     }
 
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < numPlanes; i++)
     {
         float t;
         if (intersectPlane(rayOriginWorld, rayDir, planes[i], t))

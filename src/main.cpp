@@ -93,17 +93,47 @@ int main()
     computeShader.SetVec3("backgroundColor", camera.backgroundColor);
 
     // Pass spheres
-    std::vector<float> gpuSpheres = {
-        0.0f, 0.0f, -5.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-        1.0f, 0.5f, -4.0f, 0.5f, 0.4f, 0.5f, 1.0f, 1.0f
+    #pragma pack(1)
+
+    struct GPUSphere
+    {
+        glm::vec3 center;
+        float radius;
+        glm::vec4 color;
+    };
+
+    struct GPUPlane
+    {
+        glm::vec3 offset;
+        float padding1;
+        glm::vec3 orientation;
+        float padding2;
+        glm::vec4 color;
+    };
+
+    #pragma pack()
+
+    std::vector<GPUSphere> gpuSpheres = {
+        { { 0.0f, 0.0f, -5.0f }, 1.0f, { 1.0f, 1.0f, 1.0f, 1.0f } },
+        { { 1.0f, 0.5f, -4.0f }, 0.5f, { 0.4f, 0.5f, 1.0f, 1.0f } }
+    };
+    std::vector<GPUPlane> gpuPlanes = {
+        { { 0.0f, -2.0f, 0.0f }, 0.0f, { 0.0f, -1.0f, 0.0f }, 0.0f, { 0.5f, 0.5f, 0.5f, 1.0f } }
     };
 
     GLuint spheresBuffer;
     glCreateBuffers(1, &spheresBuffer);
-    glNamedBufferStorage(spheresBuffer, sizeof(float) * gpuSpheres.size(), (const void*)gpuSpheres.data(), GL_DYNAMIC_STORAGE_BIT);
+    glNamedBufferStorage(spheresBuffer, sizeof(GPUSphere) * gpuSpheres.size(), (const void*)gpuSpheres.data(), GL_DYNAMIC_STORAGE_BIT);
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spheresBuffer);
-    computeShader.SetInt("numSpheres", 2);
+    computeShader.SetInt("numSpheres", gpuSpheres.size());
+
+    GLuint planesBuffer;
+    glCreateBuffers(1, &planesBuffer);
+    glNamedBufferStorage(planesBuffer, sizeof(GPUPlane) * gpuPlanes.size(), (const void*)gpuPlanes.data(), GL_DYNAMIC_STORAGE_BIT);
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, planesBuffer);
+    computeShader.SetInt("numPlanes", gpuPlanes.size());
 
     float deltaTime = 0;
     float lastFrame = 0;
