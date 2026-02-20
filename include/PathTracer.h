@@ -1,10 +1,19 @@
 #pragma once
 
 #include <Scene.h>
-#include <Image.h>
 #include <Camera.h>
+#include <ComputeShader.h>
 
-namespace PathTracer
+class PathTracer
 {
-    void PathTrace(const Scene& scene, const Camera& camera, Image& outputImage);
-}
+private:
+    Scene& _scene;
+    ComputeShader& _computeShader;
+    unsigned int _sphereBuffer, _planeBuffer;
+
+public:
+    PathTracer(Scene& scene, ComputeShader& computeShader);
+    ~PathTracer();
+
+    void PathTrace(const Camera& camera, int width, int height);
+};

@@ -2,6 +2,17 @@
 
 #include <SceneObject.h>
 
+#pragma pack(1)
+struct GPUPlane
+{
+    glm::vec3 offset;
+    float padding1;
+    glm::vec3 orientation;
+    float padding2;
+    glm::vec4 color;
+};
+#pragma pack()
+
 struct Plane : public SceneObject
 {
     glm::vec3 orientation;
@@ -11,17 +22,8 @@ struct Plane : public SceneObject
     Plane()
         : SceneObject(), orientation(glm::vec3(0.0f)) {}
 
-    // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection.html
-    bool Intersect(const Ray& ray, float& t) const override
+    GPUPlane GetGPUPlane() const
     {
-        float denom = glm::dot(orientation, ray.direction);
-        if (denom > 1e-6)
-        {
-            glm::vec3 p010 = position - ray.origin;
-            t = glm::dot(p010, orientation) / denom;
-            return (t >= 0);
-        }
-
-        return false;
+        return { position, 0.0f, orientation, 0.0f, { color.r, color.g, color.b, 1.0f } };
     }
 };

@@ -13,17 +13,13 @@
 int main()
 {
     Scene scene;
-    scene.AddObject(new Plane(glm::vec3(0.0f, -3.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f)));
-    scene.AddObject(new Sphere(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0.25f));
-    scene.AddObject(new Sphere(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f));
-    scene.AddObject(new Sphere(glm::vec3(1.0f, 0.0f, -8.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1.0f));
-    scene.AddObject(new Sphere(glm::vec3(-1.0f, -1.0f, -8.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.5f));
+    scene.AddPlane(Plane(glm::vec3(0.0f, -3.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.5f)));
+    scene.AddSphere(Sphere(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0.25f));
+    scene.AddSphere(Sphere(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f));
+    scene.AddSphere(Sphere(glm::vec3(1.0f, 0.0f, -8.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1.0f));
+    scene.AddSphere(Sphere(glm::vec3(-1.0f, -1.0f, -8.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.5f));
 
     Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.1f));
-
-    Image image(1280, 720);
-    PathTracer::PathTrace(scene, camera, image);
-    image.SaveToPPM("output.ppm");
 
     const unsigned int TEXTURE_WIDTH = 1024, TEXTURE_HEIGHT = 1024;
 
@@ -33,7 +29,6 @@ int main()
     auto& window = Window::GetInstance();
 
     // Create test texture
-    
     unsigned int texture;
     glGenTextures(1, &texture);
     glActiveTexture(GL_TEXTURE0);
@@ -78,62 +73,7 @@ int main()
     Shader shader("assets/shaders/quad.vert", "assets/shaders/quad.frag");
     shader.SetInt("tex", 0);
 
-    // TEMP - Set compute shader variables
-    glm::vec3 target = camera.position + camera.direction;
-    glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::mat4 viewMatrix = glm::lookAt(camera.position, target, worldUp);
-    glm::mat4 cameraToWorld = glm::inverse(viewMatrix);
-
-    glm::vec3 rayOriginWorld = glm::vec3(cameraToWorld * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-
-    computeShader.Bind();
-    computeShader.SetMat4("cameraToWorld", cameraToWorld);
-    computeShader.SetVec3("rayOriginWorld", rayOriginWorld);
-    computeShader.SetFloat("fov", camera.fov);
-    computeShader.SetVec3("backgroundColor", camera.backgroundColor);
-
-    // Pass spheres
-    #pragma pack(1)
-
-    struct GPUSphere
-    {
-        glm::vec3 center;
-        float radius;
-        glm::vec4 color;
-    };
-
-    struct GPUPlane
-    {
-        glm::vec3 offset;
-        float padding1;
-        glm::vec3 orientation;
-        float padding2;
-        glm::vec4 color;
-    };
-
-    #pragma pack()
-
-    std::vector<GPUSphere> gpuSpheres = {
-        { { 0.0f, 0.0f, -5.0f }, 1.0f, { 1.0f, 1.0f, 1.0f, 1.0f } },
-        { { 1.0f, 0.5f, -4.0f }, 0.5f, { 0.4f, 0.5f, 1.0f, 1.0f } }
-    };
-    std::vector<GPUPlane> gpuPlanes = {
-        { { 0.0f, -2.0f, 0.0f }, 0.0f, { 0.0f, -1.0f, 0.0f }, 0.0f, { 0.5f, 0.5f, 0.5f, 1.0f } }
-    };
-
-    GLuint spheresBuffer;
-    glCreateBuffers(1, &spheresBuffer);
-    glNamedBufferStorage(spheresBuffer, sizeof(GPUSphere) * gpuSpheres.size(), (const void*)gpuSpheres.data(), GL_DYNAMIC_STORAGE_BIT);
-
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, spheresBuffer);
-    computeShader.SetInt("numSpheres", gpuSpheres.size());
-
-    GLuint planesBuffer;
-    glCreateBuffers(1, &planesBuffer);
-    glNamedBufferStorage(planesBuffer, sizeof(GPUPlane) * gpuPlanes.size(), (const void*)gpuPlanes.data(), GL_DYNAMIC_STORAGE_BIT);
-
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, planesBuffer);
-    computeShader.SetInt("numPlanes", gpuPlanes.size());
+    PathTracer pathTracer(scene, computeShader);
 
     float deltaTime = 0;
     float lastFrame = 0;
@@ -148,10 +88,8 @@ int main()
         // Clear window
         window.Clear();
 
-        // Run compute shader
-        computeShader.Bind();
-        glDispatchCompute((unsigned int)TEXTURE_WIDTH/16, (unsigned int)TEXTURE_HEIGHT/16, 1);
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+        // Run path tracer
+        pathTracer.PathTrace(camera, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 
         // Render quad
         shader.Bind();
