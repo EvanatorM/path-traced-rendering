@@ -20,7 +20,7 @@ PathTracer::~PathTracer()
 void PathTracer::PathTrace(const Camera& camera, int width, int height)
 {
     // Calculate cameraToWorld matrix
-    glm::vec3 target = camera.position + camera.direction;
+    glm::vec3 target = camera.position + camera.Front();
     glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
     glm::mat4 viewMatrix = glm::lookAt(camera.position, target, worldUp);
     glm::mat4 cameraToWorld = glm::inverse(viewMatrix);

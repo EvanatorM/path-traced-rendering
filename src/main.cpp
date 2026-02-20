@@ -12,16 +12,22 @@
 #include <Shader.h>
 #include <UIManager.h>
 
+void mouseCallback(GLFWwindow* window, double xpos, double ypos);
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -90.0f, 0.0f), 70.0f, glm::vec3(0.1f));
+
+bool paused = false;
+
 int main()
 {
     Scene scene;
     scene.AddPlane(Plane(glm::vec3(0.0f, -3.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.5f)));
     scene.AddSphere(Sphere(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0.25f));
-    scene.AddSphere(Sphere(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(1.0f, 0.0f, 0.0f), 1.0f));
-    scene.AddSphere(Sphere(glm::vec3(1.0f, 0.0f, -8.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1.0f));
-    scene.AddSphere(Sphere(glm::vec3(-1.0f, -1.0f, -8.0f), glm::vec3(0.0f, 1.0f, 0.0f), 0.5f));
+    scene.AddSphere(Sphere(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(1.0f, 0.2f, 0.2f), 1.0f));
+    scene.AddSphere(Sphere(glm::vec3(1.0f, 0.0f, -8.0f), glm::vec3(0.2f, 0.2f, 1.0f), 1.0f));
+    scene.AddSphere(Sphere(glm::vec3(-1.0f, -1.0f, -8.0f), glm::vec3(0.2f, 1.0f, 0.2f), 0.5f));
 
-    Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.1f));
 
     const unsigned int TEXTURE_WIDTH = 1024, TEXTURE_HEIGHT = 1024;
 
@@ -29,6 +35,8 @@ int main()
     Renderer::Init();
     Window::InitWindow(TEXTURE_WIDTH, TEXTURE_HEIGHT, "Path Traced Renderer");
     auto& window = Window::GetInstance();
+    glfwSetCursorPosCallback(window.GetWindow(), mouseCallback);
+    glfwSetKeyCallback(window.GetWindow(), keyCallback);
 
     // Create test texture
     unsigned int texture;
@@ -81,6 +89,9 @@ int main()
     // Initialize ImGUI
     UIManager::InitImGUI();
 
+    // Lock mouse
+    glfwSetInputMode(window.GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
     float deltaTime = 0;
     float lastFrame = 0;
 
@@ -104,6 +115,21 @@ int main()
             previousTime = currentFrame;
         }
 
+        // Run update logic
+        float movementSpeed = 5.0f;
+        if (glfwGetKey(window.GetWindow(), GLFW_KEY_W))
+            camera.position += camera.Front() * movementSpeed * deltaTime;
+        if (glfwGetKey(window.GetWindow(), GLFW_KEY_S))
+            camera.position -= camera.Front() * movementSpeed * deltaTime;
+        if (glfwGetKey(window.GetWindow(), GLFW_KEY_A))
+            camera.position -= camera.Right() * movementSpeed * deltaTime;
+        if (glfwGetKey(window.GetWindow(), GLFW_KEY_D))
+            camera.position += camera.Right() * movementSpeed * deltaTime;
+        if (glfwGetKey(window.GetWindow(), GLFW_KEY_E))
+            camera.position += camera.Up() * movementSpeed * deltaTime;
+        if (glfwGetKey(window.GetWindow(), GLFW_KEY_Q))
+            camera.position -= camera.Up() * movementSpeed * deltaTime;
+
         // Clear window
         window.Clear();
 
@@ -120,6 +146,8 @@ int main()
         UIManager::BeginFrame();
 
         ImGui::Text("FPS: %d", fps);
+        ImGui::Text("Pos: %f, %f, %f", camera.position.x, camera.position.y, camera.position.z);
+        ImGui::Text("Dir: %f, %f, %f", camera.direction.x, camera.direction.y, camera.direction.z);
 
         UIManager::EndFrame();
 
@@ -129,4 +157,47 @@ int main()
     }
 
     Renderer::Shutdown();
+}
+
+float lastX = 0, lastY = 0;
+bool firstFrame = true;
+
+void mouseCallback(GLFWwindow* window, double xpos, double ypos)
+{
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    if (firstFrame)
+    {
+        firstFrame = false;
+        return;
+    }
+
+    if (paused) return;
+
+    float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    camera.direction.y += xoffset;
+    camera.direction.x += yoffset;
+
+    if(camera.direction.x > 89.0f)
+        camera.direction.x = 89.0f;
+    if(camera.direction.x < -89.0f)
+        camera.direction.x = -89.0f;
+}
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        paused = !paused;
+        if (paused)
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        else
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
 }

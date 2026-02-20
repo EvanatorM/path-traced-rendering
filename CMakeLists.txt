@@ -21,6 +21,7 @@ endmacro()
 _fetch_git_project(glad https://github.com/Dav1dde/glad.git 5bf3eda)
 
 add_executable(PathTracer
+    src/Camera.cpp
     src/ComputeShader.cpp
     src/main.cpp
     src/PathTracer.cpp
