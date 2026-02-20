@@ -5,10 +5,12 @@
 #include <PathTracer.h>
 #include <Renderer.h>
 #include <Window.h>
+#include <imgui.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <ComputeShader.h>
 #include <Shader.h>
+#include <UIManager.h>
 
 int main()
 {
@@ -73,10 +75,18 @@ int main()
     Shader shader("assets/shaders/quad.vert", "assets/shaders/quad.frag");
     shader.SetInt("tex", 0);
 
+    // Create Path Tracer
     PathTracer pathTracer(scene, computeShader);
+
+    // Initialize ImGUI
+    UIManager::InitImGUI();
 
     float deltaTime = 0;
     float lastFrame = 0;
+
+    float previousTime = 0;
+    int frameCount = 0;
+    int fps = 0;
 
     while (!window.ShouldClose())
     {
@@ -84,6 +94,15 @@ int main()
         float currentFrame = Renderer::GetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        // Get FPS
+        frameCount++;
+        if (currentFrame - previousTime >= 1.0f)
+        {
+            fps = frameCount;
+            frameCount = 0;
+            previousTime = currentFrame;
+        }
 
         // Clear window
         window.Clear();
@@ -96,6 +115,13 @@ int main()
         glBindVertexArray(VAO);
         glBindTexture(GL_TEXTURE_2D, texture);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        // Render UI
+        UIManager::BeginFrame();
+
+        ImGui::Text("FPS: %d", fps);
+
+        UIManager::EndFrame();
 
         // End-of-frame logic
         window.SwapBuffers();
