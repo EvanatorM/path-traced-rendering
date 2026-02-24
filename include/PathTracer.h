@@ -9,7 +9,7 @@ class PathTracer
 private:
     Scene& _scene;
     ComputeShader& _computeShader;
-    unsigned int _sphereBuffer, _planeBuffer;
+    unsigned int _sphereBuffer, _planeBuffer, _pointLightBuffer;
 
 public:
     PathTracer(Scene& scene, ComputeShader& computeShader);

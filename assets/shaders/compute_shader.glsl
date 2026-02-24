@@ -27,15 +27,8 @@ struct Plane {
 
 struct PointLight {
     vec4 position;
-
-    float constant;
-    float linear;
-    float quadratic;
-    float padding1;
-
-    vec4 ambient;
-    vec4 diffuse;
-    vec4 specular;
+    vec3 color;
+    float intensity;
 };
 
 layout(std430, binding = 1) buffer sphereBuffer
@@ -56,7 +49,7 @@ layout(std430, binding = 3) buffer pointLightBuffer
 };
 uniform int numPointLights;
 
-bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t)
+bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t, out vec3 hitPoint, out vec3 normal)
 {
     float t0, t1;
 
@@ -83,21 +76,51 @@ bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t)
     }
 
     t = t0;
+    hitPoint = ro + rd * t;
+    normal = normalize(hitPoint - s.center);
 
     return true;
 }
 
-bool intersectPlane(vec3 ro, vec3 rd, Plane p, out float t)
+bool intersectPlane(vec3 ro, vec3 rd, Plane p, out float t, out vec3 hitPoint, out vec3 normal)
 {
     float denom = dot(p.orientation, rd);
     if (denom > 1e-6)
     {
         vec3 p010 = p.offset - ro;
         t = dot(p010, p.orientation) / denom;
-        return (t >= 0);
+
+        if (t < 0) return false;
+
+        hitPoint = ro + rd * t;
+        normal = (denom < 0.0) ? normalize(p.orientation) : -normalize(p.orientation);
+        return true;
     }
 
     return false;
+}
+
+// https://deepwiki.com/nico-mayora/gpu_data_structures/3.2-direct-and-indirect-illumination
+vec3 calculateDirectLighting(vec3 hitPoint, vec3 hitPointNormal)
+{
+    vec3 lighting = vec3(0.0);
+
+    for (int i = 0; i < numPointLights; i++)
+    {
+        // Calculate light direction
+        vec3 toLight = pointLights[i].position.xyz - hitPoint;
+        float dist2 = max(dot(toLight, toLight), 1e-6);
+        vec3 L = toLight * inversesqrt(dist2);
+
+        float NdotL = max(dot(hitPointNormal, L), 0.0);
+        if (NdotL <= 0.0)
+            continue;
+
+        vec3 radiance = pointLights[i].color * pointLights[i].intensity / dist2;
+        lighting += radiance * NdotL;
+    }
+
+    return lighting;
 }
 
 void main()
@@ -124,12 +147,15 @@ void main()
     for (int i = 0; i < numSpheres; i++)
     {
         float t;
-        if (intersectSphere(rayOriginWorld, rayDir, spheres[i], t))
+        vec3 hitPoint;
+        vec3 hitNormal;
+        if (intersectSphere(rayOriginWorld, rayDir, spheres[i], t, hitPoint, hitNormal))
         {
             if (t < nearestT)
             {
                 nearestT = t;
-                finalColor = spheres[i].color.rgb;
+                vec3 lighting = calculateDirectLighting(hitPoint, hitNormal);
+                finalColor = spheres[i].color.rgb * lighting;
             }
         }
     }
@@ -137,12 +163,15 @@ void main()
     for (int i = 0; i < numPlanes; i++)
     {
         float t;
-        if (intersectPlane(rayOriginWorld, rayDir, planes[i], t))
+        vec3 hitPoint;
+        vec3 hitNormal;
+        if (intersectPlane(rayOriginWorld, rayDir, planes[i], t, hitPoint, hitNormal))
         {
             if (t < nearestT)
             {
                 nearestT = t;
-                finalColor = planes[i].color.rgb;
+                vec3 lighting = calculateDirectLighting(hitPoint, hitNormal);
+                finalColor = planes[i].color.rgb * lighting;
             }
         }
     }

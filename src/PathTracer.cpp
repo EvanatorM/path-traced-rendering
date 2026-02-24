@@ -10,11 +10,13 @@ PathTracer::PathTracer(Scene& scene, ComputeShader& computeShader)
 {
     glCreateBuffers(1, &_sphereBuffer);
     glCreateBuffers(1, &_planeBuffer);
+    glCreateBuffers(1, &_pointLightBuffer);
 }
 PathTracer::~PathTracer()
 {
     glDeleteBuffers(1, &_sphereBuffer);
     glDeleteBuffers(1, &_planeBuffer);
+    glDeleteBuffers(1, &_pointLightBuffer);
 }
 
 void PathTracer::PathTrace(const Camera& camera, int width, int height)
@@ -29,6 +31,7 @@ void PathTracer::PathTrace(const Camera& camera, int width, int height)
 
     auto spheres = _scene.GetGPUSpheres();
     auto planes = _scene.GetGPUPlanes();
+    auto pointLights = _scene.GetGPUPointLights();
 
     _computeShader.Bind();
     _computeShader.SetMat4("cameraToWorld", cameraToWorld);
@@ -46,6 +49,11 @@ void PathTracer::PathTrace(const Camera& camera, int width, int height)
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _planeBuffer);
     _computeShader.SetInt("numPlanes", planes.size());
+
+    glNamedBufferStorage(_pointLightBuffer, sizeof(GPUPointLight) * pointLights.size(), (const void*)pointLights.data(), GL_DYNAMIC_STORAGE_BIT);
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, _pointLightBuffer);
+    _computeShader.SetInt("numPointLights", pointLights.size());
 
     glDispatchCompute((unsigned int)std::ceilf(width/16.0f), (unsigned int)std::ceilf(height/16.0f), 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);

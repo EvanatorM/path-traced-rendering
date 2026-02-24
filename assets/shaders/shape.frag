@@ -10,15 +10,8 @@ out vec4 FragColor;
 
 struct PointLight {
     vec4 position;
-
-    float constant;
-    float linear;
-    float quadratic;
-    float padding1;
-
-    vec4 ambient;
-    vec4 diffuse;
-    vec4 specular;
+    vec3 color;
+    float intensity;
 };
 
 layout(std430, binding = 3) buffer pointLightBuffer
@@ -27,40 +20,27 @@ layout(std430, binding = 3) buffer pointLightBuffer
 };
 uniform int numPointLights;
 
-vec3 CalculatePointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir)
+vec3 CalculatePointLight(PointLight light, vec3 normal, vec3 fragPos)
 {
-    vec3 lightDir = normalize(light.position.xyz - fragPos);
+    vec3 toLight = light.position.xyz - fragPos;
+    float dist2 = max(dot(toLight, toLight), 1e-6);
+    vec3 L = toLight * inversesqrt(dist2);
 
-    // diffuse shading
-    float diff = max(dot(normal, lightDir), 0.0);
+    float NdotL = max(dot(normalize(normal), L), 0.0);
+    vec3 radiance = light.color * light.intensity / dist2;
 
-    // specular shading
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-
-    // attenuation
-    float distance = length(light.position.xyz - fragPos);
-    float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
-
-    // combine results
-    vec3 ambient = light.ambient.xyz * vec3(color);
-    vec3 diffuse = light.diffuse.xyz * diff * vec3(color);
-    vec3 specular = light.specular.xyz * spec * vec3(1.0); // Assuming white specular highlights
-
-    ambient *= attenuation;
-    diffuse *= attenuation;
-    specular *= attenuation;
-    return (ambient + diffuse + specular);
+    return radiance * NdotL;
 }
 
 void main()
-{    vec3 viewDir = normalize(viewPos - FragPos);
+{    
+    vec3 N = normalize(Normal);
 
-    vec3 result = vec3(0.0);
+    vec3 lighting = vec3(0.0);
     for (int i = 0; i < numPointLights; i++)
     {
-        result += CalculatePointLight(pointLights[i], Normal, FragPos, viewDir);
+        lighting += CalculatePointLight(pointLights[i], N, FragPos);
     }
 
-    FragColor = vec4(result, 1.0);
+    FragColor = vec4(lighting * color, 1.0);
 }
