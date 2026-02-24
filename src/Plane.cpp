@@ -19,7 +19,7 @@ void Plane::RenderRaster(const glm::mat4& view, const glm::mat4& proj) const
     };
     static Mesh mesh(vertices, 4, indices, 6);
 
-    static Shader shader("assets/shaders/plane.vert", "assets/shaders/plane.frag");
+    static Shader shader("assets/shaders/shape.vert", "assets/shaders/shape.frag");
 
     shader.Bind();
     shader.SetMat4("view", view);
@@ -31,6 +31,7 @@ void Plane::RenderRaster(const glm::mat4& view, const glm::mat4& proj) const
     model = glm::rotate(model, glm::radians(orientation.y), glm::vec3(0.0, 1.0, 0.0));
     model = glm::rotate(model, glm::radians(orientation.z), glm::vec3(0.0, 0.0, 1.0));
     shader.SetMat4("model", model);
+    shader.SetVec3("color", color);
 
     mesh.Draw();
 }

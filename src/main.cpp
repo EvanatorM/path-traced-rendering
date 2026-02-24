@@ -137,11 +137,17 @@ int main()
         }
         else
         {
+            window.SetBackgroundColor(camera->backgroundColor.r, camera->backgroundColor.g, camera->backgroundColor.b, 1.0f);
+
             auto view = camera->GetViewMatrix();
             auto proj = camera->GetProjectionMatrix();
             for (auto& plane : scene.GetPlanes())
             {
                 plane.RenderRaster(view, proj);
+            }
+            for (auto& sphere : scene.GetSpheres())
+            {
+                sphere.RenderRaster(view, proj);
             }
         }
 

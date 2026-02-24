@@ -2,6 +2,7 @@
 
 #include <glm/glm.hpp>
 #include <cstdint>
+#include <string>
 
 struct Vertex
 {
@@ -18,6 +19,9 @@ private:
 public:
     Mesh();
     Mesh(Vertex* vertices, int vertexCount, uint32_t* indices, int indexCount);
+
+    static Mesh CreateFromFile(const std::string& meshFile);
+
     ~Mesh();
 
     void BufferData(Vertex* vertices, int vertexCount, uint32_t* indices, int indexCount);

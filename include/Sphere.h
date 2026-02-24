@@ -22,6 +22,8 @@ struct Sphere : public SceneObject
     Sphere()
         : SceneObject(), radius(1.0f) {}
 
+    void RenderRaster(const glm::mat4& view, const glm::mat4& proj) const;
+
     GPUSphere GetGPUSphere() const
     {
         return { position, radius, { color.r, color.g, color.b, 1.0f } };

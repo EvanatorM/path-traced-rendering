@@ -29,6 +29,7 @@ add_executable(PathTracer
     src/Plane.cpp
     src/Renderer.cpp
     src/Shader.cpp
+    src/Sphere.cpp
     src/UIManager.cpp
     src/Window.cpp
 
