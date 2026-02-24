@@ -16,9 +16,10 @@
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
-Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -90.0f, 0.0f), 70.0f, glm::vec3(0.1f));
+Camera* camera;
 
 bool paused = false;
+bool pathTraced = true;
 
 int main()
 {
@@ -38,6 +39,8 @@ int main()
     auto& window = Window::GetInstance();
     glfwSetCursorPosCallback(window.GetWindow(), mouseCallback);
     glfwSetKeyCallback(window.GetWindow(), keyCallback);
+
+    camera = new Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -90.0f, 0.0f), 70.0f, glm::vec3(0.1f));
 
     // Create test texture
     unsigned int texture;
@@ -107,35 +110,48 @@ int main()
         // Run update logic
         float movementSpeed = 5.0f;
         if (glfwGetKey(window.GetWindow(), GLFW_KEY_W))
-            camera.position += camera.Front() * movementSpeed * deltaTime;
+            camera->position += camera->Front() * movementSpeed * deltaTime;
         if (glfwGetKey(window.GetWindow(), GLFW_KEY_S))
-            camera.position -= camera.Front() * movementSpeed * deltaTime;
+            camera->position -= camera->Front() * movementSpeed * deltaTime;
         if (glfwGetKey(window.GetWindow(), GLFW_KEY_A))
-            camera.position -= camera.Right() * movementSpeed * deltaTime;
+            camera->position -= camera->Right() * movementSpeed * deltaTime;
         if (glfwGetKey(window.GetWindow(), GLFW_KEY_D))
-            camera.position += camera.Right() * movementSpeed * deltaTime;
+            camera->position += camera->Right() * movementSpeed * deltaTime;
         if (glfwGetKey(window.GetWindow(), GLFW_KEY_E))
-            camera.position += camera.Up() * movementSpeed * deltaTime;
+            camera->position += camera->Up() * movementSpeed * deltaTime;
         if (glfwGetKey(window.GetWindow(), GLFW_KEY_Q))
-            camera.position -= camera.Up() * movementSpeed * deltaTime;
+            camera->position -= camera->Up() * movementSpeed * deltaTime;
 
         // Clear window
         window.Clear();
 
         // Run path tracer
-        pathTracer.PathTrace(camera, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        if (pathTraced)
+        {
+            pathTracer.PathTrace(*camera, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 
-        // Render quad
-        shader.Bind();
-        glBindTexture(GL_TEXTURE_2D, texture);
-        screenMesh.Draw();
+            // Render quad
+            shader.Bind();
+            glBindTexture(GL_TEXTURE_2D, texture);
+            screenMesh.Draw();
+        }
+        else
+        {
+            auto view = camera->GetViewMatrix();
+            auto proj = camera->GetProjectionMatrix();
+            for (auto& plane : scene.GetPlanes())
+            {
+                plane.RenderRaster(view, proj);
+            }
+        }
 
         // Render UI
         UIManager::BeginFrame();
 
         ImGui::Text("FPS: %d", fps);
-        ImGui::Text("Pos: %f, %f, %f", camera.position.x, camera.position.y, camera.position.z);
-        ImGui::Text("Dir: %f, %f, %f", camera.direction.x, camera.direction.y, camera.direction.z);
+        ImGui::Text("Pos: %f, %f, %f", camera->position.x, camera->position.y, camera->position.z);
+        ImGui::Text("Dir: %f, %f, %f", camera->direction.x, camera->direction.y, camera->direction.z);
+        ImGui::Checkbox("Path Traced", &pathTraced);
 
         UIManager::EndFrame();
 
@@ -169,13 +185,13 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
-    camera.direction.y += xoffset;
-    camera.direction.x += yoffset;
+    camera->direction.y += xoffset;
+    camera->direction.x += yoffset;
 
-    if(camera.direction.x > 89.0f)
-        camera.direction.x = 89.0f;
-    if(camera.direction.x < -89.0f)
-        camera.direction.x = -89.0f;
+    if(camera->direction.x > 89.0f)
+        camera->direction.x = 89.0f;
+    if(camera->direction.x < -89.0f)
+        camera->direction.x = -89.0f;
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)

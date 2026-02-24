@@ -22,6 +22,8 @@ struct Plane : public SceneObject
     Plane()
         : SceneObject(), orientation(glm::vec3(0.0f)) {}
 
+    void RenderRaster(const glm::mat4& view, const glm::mat4& proj) const;
+
     GPUPlane GetGPUPlane() const
     {
         return { position, 0.0f, orientation, 0.0f, { color.r, color.g, color.b, 1.0f } };
