@@ -24,6 +24,7 @@ add_executable(PathTracer
     src/Camera.cpp
     src/ComputeShader.cpp
     src/main.cpp
+    src/Mesh.cpp
     src/PathTracer.cpp
     src/Renderer.cpp
     src/Shader.cpp
