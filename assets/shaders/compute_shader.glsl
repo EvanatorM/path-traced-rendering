@@ -100,6 +100,20 @@ bool intersectPlane(vec3 ro, vec3 rd, Plane p, out float t, out vec3 hitPoint, o
     return false;
 }
 
+bool rayBlocked(vec3 ro, vec3 rd, float maxT)
+{
+    float t;
+    vec3 hitPoint;
+    vec3 hitNormal;
+    for (int i = 0; i < numSpheres; i++)
+        if (intersectSphere(ro, rd, spheres[i], t, hitPoint, hitNormal) && t > 1e-4 && t < maxT) return true;
+
+    for (int i = 0; i < numPlanes; i++)
+        if (intersectPlane(ro, rd, planes[i], t, hitPoint, hitNormal) && t > 1e-4 && t < maxT) return true;
+
+    return false;
+}
+
 // https://deepwiki.com/nico-mayora/gpu_data_structures/3.2-direct-and-indirect-illumination
 vec3 calculateDirectLighting(vec3 hitPoint, vec3 hitPointNormal)
 {
@@ -114,6 +128,10 @@ vec3 calculateDirectLighting(vec3 hitPoint, vec3 hitPointNormal)
 
         float NdotL = max(dot(hitPointNormal, L), 0.0);
         if (NdotL <= 0.0)
+            continue;
+
+        vec3 shadowOrigin = hitPoint + hitPointNormal * 1e-3;
+        if (rayBlocked(hitPoint, L, sqrt(dist2)))
             continue;
 
         vec3 radiance = pointLights[i].color * pointLights[i].intensity / dist2;
