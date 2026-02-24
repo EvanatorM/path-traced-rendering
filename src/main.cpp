@@ -59,11 +59,11 @@ int main()
 
     // Create quad for displaying the texture
     Vertex vertices[] = {
-        // positions   // texCoords
-        glm::vec3(-1.0f, -1.0f, 0.0f),  glm::vec2(0.0f, 1.0f),
-        glm::vec3( 1.0f, -1.0f, 0.0f),  glm::vec2(1.0f, 1.0f),
-        glm::vec3(-1.0f,  1.0f, 0.0f),  glm::vec2(0.0f, 0.0f),
-        glm::vec3( 1.0f,  1.0f, 0.0f),  glm::vec2(1.0f, 0.0f)
+        // positions   // normals    // texCoords
+        glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec2(0.0f, 1.0f),
+        glm::vec3( 1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec2(1.0f, 1.0f),
+        glm::vec3(-1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec2(0.0f, 0.0f),
+        glm::vec3( 1.0f,  1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f),  glm::vec2(1.0f, 0.0f)
     };
     uint32_t indices[] = {
         0, 2, 1,
@@ -143,11 +143,11 @@ int main()
             auto proj = camera->GetProjectionMatrix();
             for (auto& plane : scene.GetPlanes())
             {
-                plane.RenderRaster(view, proj);
+                plane.RenderRaster(view, proj, camera->position);
             }
             for (auto& sphere : scene.GetSpheres())
             {
-                sphere.RenderRaster(view, proj);
+                sphere.RenderRaster(view, proj, camera->position);
             }
         }
 

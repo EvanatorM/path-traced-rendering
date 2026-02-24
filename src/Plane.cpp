@@ -4,14 +4,14 @@
 #include <Shader.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-void Plane::RenderRaster(const glm::mat4& view, const glm::mat4& proj) const
+void Plane::RenderRaster(const glm::mat4& view, const glm::mat4& proj, const glm::vec3& viewPos) const
 {
     static Vertex vertices[] = {
-        // positions   // texCoords
-        glm::vec3(-100.0f, 0.0f,  100.0f),  glm::vec2(0.0f, 1.0f),
-        glm::vec3( 100.0f, 0.0f,  100.0f),  glm::vec2(1.0f, 1.0f),
-        glm::vec3(-100.0f, 0.0f, -100.0f),  glm::vec2(0.0f, 0.0f),
-        glm::vec3( 100.0f, 0.0f, -100.0f),  glm::vec2(1.0f, 0.0f)
+        // positions   // normals    // texCoords
+        glm::vec3(-100.0f, 0.0f,  100.0f), glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec2(0.0f, 1.0f),
+        glm::vec3( 100.0f, 0.0f,  100.0f), glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec2(1.0f, 1.0f),
+        glm::vec3(-100.0f, 0.0f, -100.0f), glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec2(0.0f, 0.0f),
+        glm::vec3( 100.0f, 0.0f, -100.0f), glm::vec3(0.0f, 1.0f, 0.0f),  glm::vec2(1.0f, 0.0f)
     };
     static uint32_t indices[] = {
         0, 2, 1,
@@ -24,6 +24,7 @@ void Plane::RenderRaster(const glm::mat4& view, const glm::mat4& proj) const
     shader.Bind();
     shader.SetMat4("view", view);
     shader.SetMat4("proj", proj);
+    shader.SetVec3("viewPos", viewPos);
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, position);

@@ -20,8 +20,10 @@ Mesh::Mesh()
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+    glEnableVertexAttribArray(2);
 }
 
 Mesh::Mesh(Vertex* vertices, int vertexCount, uint32_t* indices, int indexCount)
@@ -42,8 +44,10 @@ Mesh::Mesh(Vertex* vertices, int vertexCount, uint32_t* indices, int indexCount)
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+    glEnableVertexAttribArray(2);
 }
 
 std::vector<std::string> SplitString(const std::string& str, char delimiter) {
@@ -115,7 +119,7 @@ Mesh Mesh::CreateFromFile(const std::string& meshFile)
                 auto vProps = SplitString(tokens[i], '/');
 
                 //Logger::Log("Vertex: v:%s t:%s n:%s", vProps[0].c_str(), vProps[1].c_str(), vProps[2].c_str());
-                vertices.emplace_back(vPos[std::stoi(vProps[0]) - 1], glm::vec2(0.0f));
+                vertices.emplace_back(vPos[std::stoi(vProps[0]) - 1], vNorm[std::stoi(vProps[2]) - 1], vTexPos[std::stoi(vProps[1]) - 1]);
             }
         }
         else if (tokens.size() == 5) // Quads
@@ -138,7 +142,7 @@ Mesh Mesh::CreateFromFile(const std::string& meshFile)
                 // Since it's a quad, we need to split it into 2 triangles
                 //Logger::Log("Vertex: v:%s t:%s n:%s", vProps[0].c_str(), vProps[1].c_str(), vProps[2].c_str());
 
-                vertices.emplace_back(vPos[std::stoi(vProps[0]) - 1], glm::vec2(0.0f));
+                vertices.emplace_back(vPos[std::stoi(vProps[0]) - 1], vNorm[std::stoi(vProps[2]) - 1], vTexPos[std::stoi(vProps[1]) - 1]);
             }
         }
         else // Unsupported format
@@ -172,8 +176,10 @@ void Mesh::BufferData(Vertex* vertices, int vertexCount, uint32_t* indices, int 
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
+    glEnableVertexAttribArray(2);
 }
 
 void Mesh::Draw()
