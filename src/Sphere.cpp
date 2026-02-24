@@ -4,7 +4,7 @@
 #include <Shader.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-void Sphere::RenderRaster(const glm::mat4& view, const glm::mat4& proj, const glm::vec3& viewPos) const
+void Sphere::RenderRaster(const glm::mat4& view, const glm::mat4& proj, const glm::vec3& viewPos, int numPointLights) const
 {
     static Mesh mesh = Mesh::CreateFromFile("assets/models/sphere.obj");
     static Shader shader("assets/shaders/shape.vert", "assets/shaders/shape.frag");
@@ -19,6 +19,8 @@ void Sphere::RenderRaster(const glm::mat4& view, const glm::mat4& proj, const gl
     model = glm::scale(model, glm::vec3(radius * 2.0f));
     shader.SetMat4("model", model);
     shader.SetVec3("color", color);
+
+    shader.SetInt("numPointLights", numPointLights);
 
     mesh.Draw();
 }

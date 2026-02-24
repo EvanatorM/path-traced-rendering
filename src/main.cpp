@@ -12,6 +12,7 @@
 #include <Shader.h>
 #include <UIManager.h>
 #include <Mesh.h>
+#include <PointLight.h>
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -29,7 +30,7 @@ int main()
     scene.AddSphere(Sphere(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(1.0f, 0.2f, 0.2f), 1.0f));
     scene.AddSphere(Sphere(glm::vec3(1.0f, 0.0f, -8.0f), glm::vec3(0.2f, 0.2f, 1.0f), 1.0f));
     scene.AddSphere(Sphere(glm::vec3(-1.0f, -1.0f, -8.0f), glm::vec3(0.2f, 1.0f, 0.2f), 0.5f));
-
+    scene.AddPointLight(PointLight());
 
     const unsigned int TEXTURE_WIDTH = 1920, TEXTURE_HEIGHT = 1080;
 
@@ -91,6 +92,9 @@ int main()
     int frameCount = 0;
     int fps = 0;
 
+    unsigned int _pointLightBuffer;
+    glCreateBuffers(1, &_pointLightBuffer);
+
     while (!window.ShouldClose())
     {
         // Set frame time
@@ -139,15 +143,20 @@ int main()
         {
             window.SetBackgroundColor(camera->backgroundColor.r, camera->backgroundColor.g, camera->backgroundColor.b, 1.0f);
 
+            auto pointLights = scene.GetGPUPointLights();
+            glNamedBufferStorage(_pointLightBuffer, sizeof(GPUPointLight) * pointLights.size(), (const void*)pointLights.data(), GL_DYNAMIC_STORAGE_BIT);
+
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, _pointLightBuffer);
+
             auto view = camera->GetViewMatrix();
             auto proj = camera->GetProjectionMatrix();
             for (auto& plane : scene.GetPlanes())
             {
-                plane.RenderRaster(view, proj, camera->position);
+                plane.RenderRaster(view, proj, camera->position, pointLights.size());
             }
             for (auto& sphere : scene.GetSpheres())
             {
-                sphere.RenderRaster(view, proj, camera->position);
+                sphere.RenderRaster(view, proj, camera->position, pointLights.size());
             }
         }
 

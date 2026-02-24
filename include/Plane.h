@@ -22,7 +22,7 @@ struct Plane : public SceneObject
     Plane()
         : SceneObject(), orientation(glm::vec3(0.0f)) {}
 
-    void RenderRaster(const glm::mat4& view, const glm::mat4& proj, const glm::vec3& viewPos) const;
+    void RenderRaster(const glm::mat4& view, const glm::mat4& proj, const glm::vec3& viewPos, int numPointLights) const;
 
     GPUPlane GetGPUPlane() const
     {

@@ -4,7 +4,7 @@
 #include <Shader.h>
 #include <glm/gtc/matrix_transform.hpp>
 
-void Plane::RenderRaster(const glm::mat4& view, const glm::mat4& proj, const glm::vec3& viewPos) const
+void Plane::RenderRaster(const glm::mat4& view, const glm::mat4& proj, const glm::vec3& viewPos, int numPointLights) const
 {
     static Vertex vertices[] = {
         // positions   // normals    // texCoords
@@ -33,6 +33,8 @@ void Plane::RenderRaster(const glm::mat4& view, const glm::mat4& proj, const glm
     model = glm::rotate(model, glm::radians(orientation.z), glm::vec3(0.0, 0.0, 1.0));
     shader.SetMat4("model", model);
     shader.SetVec3("color", color);
+    
+    shader.SetInt("numPointLights", numPointLights);
 
     mesh.Draw();
 }

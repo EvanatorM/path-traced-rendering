@@ -25,6 +25,19 @@ struct Plane {
     vec4 color;
 };
 
+struct PointLight {
+    vec4 position;
+
+    float constant;
+    float linear;
+    float quadratic;
+    float padding1;
+
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
+};
+
 layout(std430, binding = 1) buffer sphereBuffer
 {
     Sphere[] spheres;
@@ -36,6 +49,12 @@ layout(std430, binding = 2) buffer planeBuffer
     Plane[] planes;
 };
 uniform int numPlanes;
+
+layout(std430, binding = 3) buffer pointLightBuffer
+{
+    PointLight[] pointLights;
+};
+uniform int numPointLights;
 
 bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t)
 {
