@@ -31,7 +31,7 @@ int main()
     scene.AddSphere(Sphere(glm::vec3(-1.0f, -1.0f, -8.0f), glm::vec3(0.2f, 1.0f, 0.2f), 0.5f));
 
 
-    const unsigned int TEXTURE_WIDTH = 1024, TEXTURE_HEIGHT = 1024;
+    const unsigned int TEXTURE_WIDTH = 1920, TEXTURE_HEIGHT = 1080;
 
     // Create window
     Renderer::Init();
