@@ -160,6 +160,10 @@ void main()
 
     // Get nearest intersection
     float nearestT = 1e20;
+    int nearestObjType = -1;
+    int nearestIndex = 0;
+    vec3 nearestHitPoint;
+    vec3 nearestHitNormal;
     vec3 finalColor = backgroundColor;
 
     for (int i = 0; i < numSpheres; i++)
@@ -172,8 +176,10 @@ void main()
             if (t < nearestT)
             {
                 nearestT = t;
-                vec3 lighting = calculateDirectLighting(hitPoint, hitNormal);
-                finalColor = spheres[i].color.rgb * lighting;
+                nearestObjType = 0;
+                nearestIndex = i;
+                nearestHitPoint = hitPoint;
+                nearestHitNormal = hitNormal;
             }
         }
     }
@@ -188,10 +194,24 @@ void main()
             if (t < nearestT)
             {
                 nearestT = t;
-                vec3 lighting = calculateDirectLighting(hitPoint, hitNormal);
-                finalColor = planes[i].color.rgb * lighting;
+                nearestObjType = 1;
+                nearestIndex = i;
+                nearestHitPoint = hitPoint;
+                nearestHitNormal = hitNormal;
             }
         }
+    }
+
+    switch (nearestObjType)
+    {
+        case 0: // Spheres
+            vec3 sLighting = calculateDirectLighting(nearestHitPoint, nearestHitNormal);
+            finalColor = spheres[nearestIndex].color.rgb * sLighting;
+            break;
+        case 1: // Planes
+            vec3 pLighting = calculateDirectLighting(nearestHitPoint, nearestHitNormal);
+            finalColor = planes[nearestIndex].color.rgb * pLighting;
+            break;
     }
 
     imageStore(imgOutput, pixelCoords, vec4(finalColor, 1.0));
