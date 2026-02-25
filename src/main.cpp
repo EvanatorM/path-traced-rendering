@@ -13,6 +13,8 @@
 #include <UIManager.h>
 #include <Mesh.h>
 #include <PointLight.h>
+#include <Texture.h>
+#include <GPUBuffer.h>
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -45,17 +47,7 @@ int main()
     camera = new Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -90.0f, 0.0f), 70.0f, glm::vec3(0.1f));
 
     // Create test texture
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, TEXTURE_WIDTH, TEXTURE_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-
-    glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+    Texture pathTracedTexture(TEXTURE_WIDTH, TEXTURE_HEIGHT);
     
     ComputeShader computeShader("assets/shaders/compute_shader.glsl");
 
@@ -93,8 +85,7 @@ int main()
     int frameCount = 0;
     int fps = 0;
 
-    unsigned int _pointLightBuffer;
-    glCreateBuffers(1, &_pointLightBuffer);
+    GPUBuffer pointLightBuffer;
 
     while (!window.ShouldClose())
     {
@@ -137,7 +128,7 @@ int main()
 
             // Render quad
             shader.Bind();
-            glBindTexture(GL_TEXTURE_2D, texture);
+            pathTracedTexture.Bind(0);
             screenMesh.Draw();
         }
         else
@@ -145,9 +136,9 @@ int main()
             window.SetBackgroundColor(camera->backgroundColor.r, camera->backgroundColor.g, camera->backgroundColor.b, 1.0f);
 
             auto pointLights = scene.GetGPUPointLights();
-            glNamedBufferStorage(_pointLightBuffer, sizeof(GPUPointLight) * pointLights.size(), (const void*)pointLights.data(), GL_DYNAMIC_STORAGE_BIT);
+            pointLightBuffer.BufferData((const void*)pointLights.data(), sizeof(GPUPointLight) * pointLights.size());
 
-            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, _pointLightBuffer);
+            pointLightBuffer.Bind(3);
 
             auto view = camera->GetViewMatrix();
             auto proj = camera->GetProjectionMatrix();

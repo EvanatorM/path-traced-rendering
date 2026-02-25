@@ -5,20 +5,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-PathTracer::PathTracer(Scene& scene, ComputeShader& computeShader)
-    : _scene(scene), _computeShader(computeShader)
-{
-    glCreateBuffers(1, &_sphereBuffer);
-    glCreateBuffers(1, &_planeBuffer);
-    glCreateBuffers(1, &_pointLightBuffer);
-}
-PathTracer::~PathTracer()
-{
-    glDeleteBuffers(1, &_sphereBuffer);
-    glDeleteBuffers(1, &_planeBuffer);
-    glDeleteBuffers(1, &_pointLightBuffer);
-}
-
 void PathTracer::PathTrace(const Camera& camera, int width, int height)
 {
     // Calculate cameraToWorld matrix
@@ -39,21 +25,17 @@ void PathTracer::PathTrace(const Camera& camera, int width, int height)
     _computeShader.SetFloat("fov", camera.fov);
     _computeShader.SetVec3("backgroundColor", camera.backgroundColor);
 
-    
-    glNamedBufferStorage(_sphereBuffer, sizeof(GPUSphere) * spheres.size(), (const void*)spheres.data(), GL_DYNAMIC_STORAGE_BIT);
-
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _sphereBuffer);
+    _sphereBuffer.BufferData((const void*)spheres.data(), sizeof(GPUSphere) * spheres.size());
+    _sphereBuffer.Bind(1);
     _computeShader.SetInt("numSpheres", spheres.size());
 
-    glNamedBufferStorage(_planeBuffer, sizeof(GPUPlane) * planes.size(), (const void*)planes.data(), GL_DYNAMIC_STORAGE_BIT);
+    _planeBuffer.BufferData((const void*)planes.data(), sizeof(GPUPlane) * planes.size());
+    _planeBuffer.Bind(2);
+    _computeShader.SetInt("numPlanes", spheres.size());
 
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _planeBuffer);
-    _computeShader.SetInt("numPlanes", planes.size());
-
-    glNamedBufferStorage(_pointLightBuffer, sizeof(GPUPointLight) * pointLights.size(), (const void*)pointLights.data(), GL_DYNAMIC_STORAGE_BIT);
-
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, _pointLightBuffer);
-    _computeShader.SetInt("numPointLights", pointLights.size());
+    _pointLightBuffer.BufferData((const void*)pointLights.data(), sizeof(GPUPointLight) * pointLights.size());
+    _pointLightBuffer.Bind(3);
+    _computeShader.SetInt("numPointLights", spheres.size());
 
     glDispatchCompute((unsigned int)std::ceilf(width/16.0f), (unsigned int)std::ceilf(height/16.0f), 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
