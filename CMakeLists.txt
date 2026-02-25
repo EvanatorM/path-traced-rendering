@@ -28,6 +28,7 @@ add_executable(PathTracer
     src/Mesh.cpp
     src/PathTracer.cpp
     src/Plane.cpp
+    src/Rasterizer.cpp
     src/Renderer.cpp
     src/Shader.cpp
     src/Sphere.cpp

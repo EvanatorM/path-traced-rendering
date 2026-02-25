@@ -15,6 +15,8 @@
 #include <PointLight.h>
 #include <Texture.h>
 #include <GPUBuffer.h>
+#include <Rasterizer.h>
+#include <chrono>
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -48,8 +50,6 @@ int main()
 
     // Create test texture
     Texture pathTracedTexture(TEXTURE_WIDTH, TEXTURE_HEIGHT);
-    
-    ComputeShader computeShader("assets/shaders/compute_shader.glsl");
 
     // Create quad for displaying the texture
     Vertex vertices[] = {
@@ -65,12 +65,17 @@ int main()
     };
     Mesh screenMesh(vertices, 4, indices, 6);
 
-    // Load shader
-    Shader shader("assets/shaders/quad.vert", "assets/shaders/quad.frag");
-    shader.SetInt("tex", 0);
+    // Load shaders
+    Shader screenShader("assets/shaders/screen.vert", "assets/shaders/screen.frag");
+    screenShader.SetInt("tex", 0);
 
-    // Create Path Tracer
+    Shader shapeShader("assets/shaders/shape.vert", "assets/shaders/shape.frag");
+
+    ComputeShader computeShader("assets/shaders/compute_shader.glsl");
+
+    // Create Renderers
     PathTracer pathTracer(scene, computeShader);
+    Rasterizer rasterizer(scene, shapeShader);
 
     // Initialize ImGUI
     UIManager::InitImGUI();
@@ -85,7 +90,8 @@ int main()
     int frameCount = 0;
     int fps = 0;
 
-    GPUBuffer pointLightBuffer;
+    float avgRenderTime = 0.0f;
+    float renderTime = 0.0f;
 
     while (!window.ShouldClose())
     {
@@ -98,7 +104,14 @@ int main()
         frameCount++;
         if (currentFrame - previousTime >= 1.0f)
         {
+            // Set FPS
             fps = frameCount;
+
+            // Set render time
+            avgRenderTime = renderTime / frameCount;
+            renderTime = 0;
+
+            // Reset counters
             frameCount = 0;
             previousTime = currentFrame;
         }
@@ -121,13 +134,15 @@ int main()
         // Clear window
         window.Clear();
 
-        // Run path tracer
+        // Render
+        auto start = std::chrono::steady_clock::now();
+
         if (pathTraced)
         {
             pathTracer.PathTrace(*camera, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 
             // Render quad
-            shader.Bind();
+            screenShader.Bind();
             pathTracedTexture.Bind(0);
             screenMesh.Draw();
         }
@@ -135,27 +150,19 @@ int main()
         {
             window.SetBackgroundColor(camera->backgroundColor.r, camera->backgroundColor.g, camera->backgroundColor.b, 1.0f);
 
-            auto pointLights = scene.GetGPUPointLights();
-            pointLightBuffer.BufferData((const void*)pointLights.data(), sizeof(GPUPointLight) * pointLights.size());
-
-            pointLightBuffer.Bind(3);
-
-            auto view = camera->GetViewMatrix();
-            auto proj = camera->GetProjectionMatrix();
-            for (auto& plane : scene.GetPlanes())
-            {
-                plane.RenderRaster(view, proj, camera->position, pointLights.size());
-            }
-            for (auto& sphere : scene.GetSpheres())
-            {
-                sphere.RenderRaster(view, proj, camera->position, pointLights.size());
-            }
+            rasterizer.Render(*camera);
         }
+
+        auto end = std::chrono::steady_clock::now();
+
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+        renderTime += duration.count();
 
         // Render UI
         UIManager::BeginFrame();
 
         ImGui::Text("FPS: %d", fps);
+        ImGui::Text("Average Render Time: %f µs", avgRenderTime);
         ImGui::Text("Pos: %f, %f, %f", camera->position.x, camera->position.y, camera->position.z);
         ImGui::Text("Dir: %f, %f, %f", camera->direction.x, camera->direction.y, camera->direction.z);
         ImGui::Checkbox("Path Traced", &pathTraced);

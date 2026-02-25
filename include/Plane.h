@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SceneObject.h>
+#include <Shader.h>
 
 #pragma pack(1)
 struct GPUPlane
@@ -22,7 +23,7 @@ struct Plane : public SceneObject
     Plane()
         : SceneObject(), orientation(glm::vec3(0.0f)) {}
 
-    void RenderRaster(const glm::mat4& view, const glm::mat4& proj, const glm::vec3& viewPos, int numPointLights) const;
+    void RenderRaster(Shader& shader) const;
 
     GPUPlane GetGPUPlane() const
     {
