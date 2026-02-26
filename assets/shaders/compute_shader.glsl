@@ -26,7 +26,8 @@ struct Plane {
 };
 
 struct PointLight {
-    vec4 position;
+    vec3 position;
+    float attenuation;
     vec3 color;
     float intensity;
 };
@@ -122,7 +123,7 @@ vec3 calculateDirectLighting(vec3 hitPoint, vec3 hitPointNormal)
     for (int i = 0; i < numPointLights; i++)
     {
         // Calculate light direction
-        vec3 toLight = pointLights[i].position.xyz - hitPoint;
+        vec3 toLight = pointLights[i].position - hitPoint;
         float dist2 = max(dot(toLight, toLight), 1e-6);
         vec3 L = toLight * inversesqrt(dist2);
 
@@ -134,7 +135,7 @@ vec3 calculateDirectLighting(vec3 hitPoint, vec3 hitPointNormal)
         if (rayBlocked(hitPoint, L, sqrt(dist2)))
             continue;
 
-        vec3 radiance = pointLights[i].color * pointLights[i].intensity / dist2;
+        vec3 radiance = pointLights[i].color * pointLights[i].intensity / (dist2 / pointLights[i].attenuation);
         lighting += radiance * NdotL;
     }
 

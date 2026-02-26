@@ -9,7 +9,8 @@ uniform vec3 color;
 out vec4 FragColor;
 
 struct PointLight {
-    vec4 position;
+    vec3 position;
+    float attenuation;
     vec3 color;
     float intensity;
 };
@@ -22,12 +23,12 @@ uniform int numPointLights;
 
 vec3 CalculatePointLight(PointLight light, vec3 normal, vec3 fragPos)
 {
-    vec3 toLight = light.position.xyz - fragPos;
+    vec3 toLight = light.position - fragPos;
     float dist2 = max(dot(toLight, toLight), 1e-6);
     vec3 L = toLight * inversesqrt(dist2);
 
     float NdotL = max(dot(normalize(normal), L), 0.0);
-    vec3 radiance = light.color * light.intensity / dist2;
+    vec3 radiance = light.color * light.intensity / (dist2 / light.attenuation);
 
     return radiance * NdotL;
 }

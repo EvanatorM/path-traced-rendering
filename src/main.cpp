@@ -35,8 +35,8 @@ int main()
     scene.AddSphere(Sphere(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(1.0f, 0.2f, 0.2f), 1.0f));
     scene.AddSphere(Sphere(glm::vec3(1.0f, 0.0f, -8.0f), glm::vec3(0.2f, 0.2f, 1.0f), 1.0f));
     scene.AddSphere(Sphere(glm::vec3(-1.0f, -1.0f, -8.0f), glm::vec3(0.2f, 1.0f, 0.2f), 0.5f));
-    scene.AddPointLight(PointLight(glm::vec3(0.0f), glm::vec3(1.0f), 5.0f));
-    scene.AddPointLight(PointLight(glm::vec3(-0.5f, 1.0f, -7.0f), glm::vec3(0.3f, 0.3f, 1.0f), 2.0f));
+    scene.AddPointLight(PointLight(glm::vec3(0.0f), glm::vec3(1.0f), 5.0f, 2.0f));
+    scene.AddPointLight(PointLight(glm::vec3(-0.5f, 1.0f, -7.0f), glm::vec3(0.3f, 0.3f, 1.0f), 1.0f, 3.0f));
 
     const unsigned int TEXTURE_WIDTH = 1920, TEXTURE_HEIGHT = 1080;
 
