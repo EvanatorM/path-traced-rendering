@@ -25,4 +25,8 @@ void Rasterizer::Render(const Camera& camera)
     {
         sphere.RenderRaster(_shader);
     }
+    for (auto& cube : _scene.GetCubes())
+    {
+        cube.RenderRaster(_shader);
+    }
 }

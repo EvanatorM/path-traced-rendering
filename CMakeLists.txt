@@ -23,6 +23,7 @@ _fetch_git_project(glad https://github.com/Dav1dde/glad.git 5bf3eda)
 add_executable(PathTracer
     src/Camera.cpp
     src/ComputeShader.cpp
+    src/Cube.cpp
     src/GPUBuffer.cpp
     src/main.cpp
     src/Mesh.cpp

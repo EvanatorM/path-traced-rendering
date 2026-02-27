@@ -32,6 +32,12 @@ struct PointLight {
     float intensity;
 };
 
+struct Cube {
+    vec4 position;
+    vec4 size;
+    vec4 color;
+};
+
 layout(std430, binding = 1) buffer sphereBuffer
 {
     Sphere[] spheres;
@@ -50,6 +56,13 @@ layout(std430, binding = 3) buffer pointLightBuffer
 };
 uniform int numPointLights;
 
+layout(std430, binding = 4) buffer cubeBuffer
+{
+    Cube[] cubes;
+};
+uniform int numCubes;
+
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
 bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t, out vec3 hitPoint, out vec3 normal)
 {
     float t0, t1;
@@ -83,6 +96,7 @@ bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t, out vec3 hitPoint,
     return true;
 }
 
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection.html
 bool intersectPlane(vec3 ro, vec3 rd, Plane p, out float t, out vec3 hitPoint, out vec3 normal)
 {
     float denom = dot(p.orientation, rd);
@@ -99,6 +113,44 @@ bool intersectPlane(vec3 ro, vec3 rd, Plane p, out float t, out vec3 hitPoint, o
     }
 
     return false;
+}
+
+// https://people.csail.mit.edu/amy/papers/box-jgt.pdf
+bool intersectCube(vec3 ro, vec3 rd, Cube c, out float t, out vec3 hitPoint, out vec3 normal)
+{
+    vec3 halfSize = c.size.xyz * 0.5;
+    vec3 bmin = c.position.xyz - halfSize;
+    vec3 bmax = c.position.xyz + halfSize;
+
+    vec3 t0 = (bmin - ro) / rd;
+    vec3 t1 = (bmax - ro) / rd;
+
+    vec3 tsmaller = min(t0, t1);
+    vec3 tbigger  = max(t0, t1);
+
+    float tNear = max(max(tsmaller.x, tsmaller.y), tsmaller.z);
+    float tFar  = min(min(tbigger.x, tbigger.y), tbigger.z);
+
+    if (tNear > tFar || tFar < 0.0)
+        return false;
+
+    t = (tNear > 0.0) ? tNear : tFar;
+    if (t < 0.0)
+        return false;
+
+    hitPoint = ro + rd * t;
+
+    vec3 local = hitPoint - c.position.xyz;
+    vec3 faceDist = abs(halfSize - abs(local));
+
+    if (faceDist.x < faceDist.y && faceDist.x < faceDist.z)
+        normal = vec3(sign(local.x), 0.0, 0.0);
+    else if (faceDist.y < faceDist.z)
+        normal = vec3(0.0, sign(local.y), 0.0);
+    else
+        normal = vec3(0.0, 0.0, sign(local.z));
+
+    return true;
 }
 
 bool rayBlocked(vec3 ro, vec3 rd, float maxT)
@@ -203,6 +255,24 @@ void main()
         }
     }
 
+    for (int i = 0; i < numCubes; i++)
+    {
+        float t;
+        vec3 hitPoint;
+        vec3 hitNormal;
+        if (intersectCube(rayOriginWorld, rayDir, cubes[i], t, hitPoint, hitNormal))
+        {
+            if (t < nearestT)
+            {
+                nearestT = t;
+                nearestObjType = 2;
+                nearestIndex = i;
+                nearestHitPoint = hitPoint;
+                nearestHitNormal = hitNormal;
+            }
+        }
+    }
+
     switch (nearestObjType)
     {
         case 0: // Spheres
@@ -212,6 +282,10 @@ void main()
         case 1: // Planes
             vec3 pLighting = calculateDirectLighting(nearestHitPoint, nearestHitNormal);
             finalColor = planes[nearestIndex].color.rgb * pLighting;
+            break;
+        case 2: // Cubes
+            vec3 cLighting = calculateDirectLighting(nearestHitPoint, nearestHitNormal);
+            finalColor = cubes[nearestIndex].color.rgb * cLighting;
             break;
     }
 

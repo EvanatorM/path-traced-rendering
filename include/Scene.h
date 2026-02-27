@@ -3,6 +3,7 @@
 #include <Sphere.h>
 #include <Plane.h>
 #include <PointLight.h>
+#include <Cube.h>
 #include <vector>
 
 class Scene
@@ -20,10 +21,15 @@ public:
     {
         _pointLights.push_back(std::move(pointLight));
     }
+    void AddCube(Cube cube)
+    {
+        _cubes.push_back(std::move(cube));
+    }
     
     const std::vector<Sphere>& GetSpheres() const { return _spheres; }
     const std::vector<Plane>& GetPlanes() const { return _planes; }
     const std::vector<PointLight>& GetPointLights() const { return _pointLights; }
+    const std::vector<Cube>& GetCubes() const { return _cubes; }
     std::vector<GPUSphere> GetGPUSpheres() const
     { 
         std::vector<GPUSphere> spheres;
@@ -45,8 +51,16 @@ public:
             pointLights.push_back(pointLight.GetGPUPointLight());
         return pointLights;
     }
+    std::vector<GPUCube> GetGPUCubes() const
+    {
+        std::vector<GPUCube> cubes;
+        for (auto& cube : _cubes)
+            cubes.push_back(cube.GetGPUCube());
+        return cubes;
+    }
 private:
     std::vector<Sphere> _spheres;
     std::vector<Plane> _planes;
     std::vector<PointLight> _pointLights;
+    std::vector<Cube> _cubes;
 };
