@@ -62,7 +62,8 @@ layout(std430, binding = 4) buffer cubeBuffer
 };
 uniform int numCubes;
 
-// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
+// Using a modified version of the function created by
+// "A Minimal Ray-Tracer: Ray-Sphere Intersection" by Jean-Colas Prunier https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
 bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t, out vec3 hitPoint, out vec3 normal)
 {
     float t0, t1;
@@ -96,7 +97,8 @@ bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t, out vec3 hitPoint,
     return true;
 }
 
-// https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection.html
+// Using a modified version of the function created by
+// "A Minimal Ray-Tracer: Ray-Plane and Ray-Disk Intersection" by Jean-Colas Prunier https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection.html
 bool intersectPlane(vec3 ro, vec3 rd, Plane p, out float t, out vec3 hitPoint, out vec3 normal)
 {
     float denom = dot(p.orientation, rd);
@@ -115,7 +117,8 @@ bool intersectPlane(vec3 ro, vec3 rd, Plane p, out float t, out vec3 hitPoint, o
     return false;
 }
 
-// https://people.csail.mit.edu/amy/papers/box-jgt.pdf
+// Using a modified version based on the contents of
+// "An Efficient and Robust Ray–Box Intersection Algorithm" by Amy Williams et al. https://people.csail.mit.edu/amy/papers/box-jgt.pdf
 bool intersectCube(vec3 ro, vec3 rd, Cube c, out float t, out vec3 hitPoint, out vec3 normal)
 {
     vec3 halfSize = c.size.xyz * 0.5;
@@ -167,7 +170,8 @@ bool rayBlocked(vec3 ro, vec3 rd, float maxT)
     return false;
 }
 
-// https://deepwiki.com/nico-mayora/gpu_data_structures/3.2-direct-and-indirect-illumination
+// Uses techniques described in
+// "Direct and Indirect Illumination" by Franco Olivera & Nicholas Mayora (2025) https://deepwiki.com/nico-mayora/gpu_data_structures/3.2-direct-and-indirect-illumination
 vec3 calculateDirectLighting(vec3 hitPoint, vec3 hitPointNormal)
 {
     vec3 lighting = vec3(0.0);
@@ -203,7 +207,9 @@ void main()
 
     float scale = tan(radians(fov * 0.5));
 
-    // Calculate point (https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-generating-camera-rays/generating-camera-rays.html)
+    // Ray generation algorithm below is based on 
+    // "Generating Camera Rays with Ray-Tracing: Generating Camera Rays" by Jean-Colas Prunier https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-generating-camera-rays/generating-camera-rays.html
+    // Calculate point
     float Px = (2.0 * ((float(pixelCoords.x) + 0.5) / float(imgSize.x)) - 1.0) * scale * aspectRatio;
     float Py = (1.0 - 2.0 * ((float(pixelCoords.y) + 0.5) / float(imgSize.y))) * scale;
 
