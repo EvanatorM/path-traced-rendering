@@ -68,4 +68,8 @@ If you're running from a command line, make sure to run the executable in the sa
 - Interaction
 
 ## Dependencies
+All dependencies are automatically downloaded using CMake. The dependencies are listed below.
+
 - GLM (https://github.com/g-truc/glm)
+- GLFW (https://www.glfw.org/)
+- Glad (https://glad.dav1d.de/)
