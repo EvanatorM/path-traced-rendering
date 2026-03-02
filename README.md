@@ -10,7 +10,7 @@ This project aims to create a real-time path traced renderer. It is made using C
 Run this command to get the dependencies for building GLFW:
 
 ```sh
-sudo apt install libwayland-dev libxkbcommon-dev xorg-dev cmake
+sudo apt install libwayland-dev libxkbcommon-dev xorg-dev cmake build-essential git
 ```
 
 </details>
