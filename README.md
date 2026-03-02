@@ -28,6 +28,8 @@ For Windows, you need the following:
 
 ### Building with CMake
 
+#### Warning: The project was tested in Windows and may not build properly in Linux.
+
 In the project root directory:
 Create CMake files:
 
