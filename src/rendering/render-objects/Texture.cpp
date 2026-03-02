@@ -1,7 +1,7 @@
 #include <rendering/render-objects/Texture.h>
 
 #include <glad/glad.h>
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 
 Texture::Texture(int width, int height)
 {
