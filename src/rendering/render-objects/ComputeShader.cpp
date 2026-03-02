@@ -1,4 +1,4 @@
-#include <ComputeShader.h>
+#include <rendering/render-objects/ComputeShader.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

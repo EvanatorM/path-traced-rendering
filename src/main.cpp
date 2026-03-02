@@ -1,21 +1,21 @@
-#include <Scene.h>
-#include <Sphere.h>
-#include <Plane.h>
-#include <Image.h>
-#include <PathTracer.h>
-#include <Renderer.h>
-#include <Window.h>
+#include <rendering/render-objects/Image.h>
+#include <rendering/render-objects/Window.h>
+#include <rendering/render-objects/ComputeShader.h>
+#include <rendering/render-objects/Shader.h>
+#include <rendering/render-objects/Mesh.h>
+#include <rendering/render-objects/Texture.h>
+#include <rendering/render-objects/GPUBuffer.h>
+#include <rendering/PathTracer.h>
+#include <rendering/Renderer.h>
+#include <rendering/Rasterizer.h>
+#include <scenes/Scene.h>
+#include <scenes/PointLight.h>
+#include <scenes/Sphere.h>
+#include <scenes/Plane.h>
+#include <UIManager.h>
 #include <imgui.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <ComputeShader.h>
-#include <Shader.h>
-#include <UIManager.h>
-#include <Mesh.h>
-#include <PointLight.h>
-#include <Texture.h>
-#include <GPUBuffer.h>
-#include <Rasterizer.h>
 #include <chrono>
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);

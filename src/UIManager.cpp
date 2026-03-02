@@ -1,6 +1,6 @@
 #include <UIManager.h>
 
-#include <Window.h>
+#include <rendering/render-objects/Window.h>
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>

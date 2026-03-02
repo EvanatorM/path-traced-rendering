@@ -21,23 +21,23 @@ endmacro()
 _fetch_git_project(glad https://github.com/Dav1dde/glad.git 5bf3eda)
 
 add_executable(PathTracer
-    src/Camera.cpp
-    src/ComputeShader.cpp
-    src/Cube.cpp
-    src/GPUBuffer.cpp
-    src/main.cpp
-    src/Mesh.cpp
-    src/PathTracer.cpp
-    src/Plane.cpp
-    src/Rasterizer.cpp
-    src/Renderer.cpp
-    src/Shader.cpp
-    src/Sphere.cpp
-    src/Texture.cpp
-    src/UIManager.cpp
-    src/Window.cpp
+  src/rendering/render-objects/ComputeShader.cpp
+  src/rendering/render-objects/GPUBuffer.cpp
+  src/rendering/render-objects/Mesh.cpp
+  src/rendering/render-objects/Shader.cpp
+  src/rendering/render-objects/Texture.cpp
+  src/rendering/render-objects/Window.cpp
+  src/rendering/Camera.cpp
+  src/rendering/PathTracer.cpp
+  src/rendering/Rasterizer.cpp
+  src/rendering/Renderer.cpp
+  src/scenes/Cube.cpp
+  src/scenes/Plane.cpp
+  src/scenes/Sphere.cpp
+  src/main.cpp
+  src/UIManager.cpp
 
-    ${glad_SOURCE_DIR}/src/glad.c
+  ${glad_SOURCE_DIR}/src/glad.c
 )
 
 target_include_directories(PathTracer PRIVATE include)

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <SceneObject.h>
-#include <Shader.h>
+#include <scenes/SceneObject.h>
+#include <rendering/render-objects/Shader.h>
 
 #pragma pack(1)
 struct GPUSphere

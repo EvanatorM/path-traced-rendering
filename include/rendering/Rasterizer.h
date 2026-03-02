@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Scene.h>
-#include <Camera.h>
-#include <Shader.h>
-#include <GPUBuffer.h>
+#include <scenes/Scene.h>
+#include <rendering/Camera.h>
+#include <rendering/render-objects/Shader.h>
+#include <rendering/render-objects/GPUBuffer.h>
 
 class Rasterizer
 {

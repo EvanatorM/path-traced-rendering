@@ -1,6 +1,6 @@
-#include <Cube.h>
+#include <scenes/Cube.h>
 
-#include <Mesh.h>
+#include <rendering/render-objects/Mesh.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 void Cube::RenderRaster(Shader& shader) const

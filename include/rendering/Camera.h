@@ -1,7 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
-#include <Window.h>
+#include <rendering/render-objects/Window.h>
 
 class Camera
 {

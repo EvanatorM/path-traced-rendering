@@ -1,6 +1,6 @@
-#include <Sphere.h>
+#include <scenes/Sphere.h>
 
-#include <Mesh.h>
+#include <rendering/render-objects/Mesh.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 void Sphere::RenderRaster(Shader& shader) const

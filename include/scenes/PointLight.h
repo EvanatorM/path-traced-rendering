@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SceneObject.h>
+#include <scenes/SceneObject.h>
 
 #pragma pack(1)
 struct GPUPointLight

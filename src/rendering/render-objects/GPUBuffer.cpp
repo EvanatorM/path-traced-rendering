@@ -1,4 +1,4 @@
-#include <GPUBuffer.h>
+#include <rendering/render-objects/GPUBuffer.h>
 
 #include <glad/glad.h>
 #include <glfw/glfw3.h>

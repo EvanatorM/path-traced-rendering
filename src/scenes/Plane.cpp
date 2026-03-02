@@ -1,6 +1,6 @@
-#include <Plane.h>
+#include <scenes/Plane.h>
 
-#include <Mesh.h>
+#include <rendering/render-objects/Mesh.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 void Plane::RenderRaster(Shader& shader) const

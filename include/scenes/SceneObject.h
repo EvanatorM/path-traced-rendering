@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Ray.h>
+#include <rendering/Ray.h>
 #include <glm/glm.hpp>
 
 struct SceneObject

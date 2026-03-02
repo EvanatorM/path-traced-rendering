@@ -1,6 +1,6 @@
-#include <PathTracer.h>
+#include <rendering/PathTracer.h>
 
-#include <Ray.h>
+#include <rendering/Ray.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

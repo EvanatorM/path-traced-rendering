@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Sphere.h>
-#include <Plane.h>
-#include <PointLight.h>
-#include <Cube.h>
+#include <scenes/Sphere.h>
+#include <scenes/Plane.h>
+#include <scenes/PointLight.h>
+#include <scenes/Cube.h>
 #include <vector>
 
 class Scene
