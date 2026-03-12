@@ -198,6 +198,12 @@ vec3 calculateDirectLighting(vec3 hitPoint, vec3 hitPointNormal)
     return lighting;
 }
 
+vec3 traceRay(vec3 hitPoint, vec3 hitPointNormal, vec3 objectColor)
+{
+    vec3 lighting = calculateDirectLighting(hitPoint, hitPointNormal);
+    return objectColor * lighting;
+}
+
 void main()
 {
     ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
@@ -282,16 +288,13 @@ void main()
     switch (nearestObjType)
     {
         case 0: // Spheres
-            vec3 sLighting = calculateDirectLighting(nearestHitPoint, nearestHitNormal);
-            finalColor = spheres[nearestIndex].color.rgb * sLighting;
+            finalColor = traceRay(nearestHitPoint, nearestHitNormal, spheres[nearestIndex].color.rgb);
             break;
         case 1: // Planes
-            vec3 pLighting = calculateDirectLighting(nearestHitPoint, nearestHitNormal);
-            finalColor = planes[nearestIndex].color.rgb * pLighting;
+            finalColor = traceRay(nearestHitPoint, nearestHitNormal, planes[nearestIndex].color.rgb);
             break;
         case 2: // Cubes
-            vec3 cLighting = calculateDirectLighting(nearestHitPoint, nearestHitNormal);
-            finalColor = cubes[nearestIndex].color.rgb * cLighting;
+            finalColor = traceRay(nearestHitPoint, nearestHitNormal, cubes[nearestIndex].color.rgb);
             break;
     }
 
