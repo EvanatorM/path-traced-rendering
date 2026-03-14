@@ -7,6 +7,14 @@
 
 void PathTracer::PathTrace(const Camera& camera, int width, int height)
 {
+    // Reset frame count if camera moves
+    if (camera.position != _prevCamPos || camera.direction != _prevCamDir)
+    {
+        _frameCount = 0;
+        _prevCamPos = camera.position;
+        _prevCamDir = camera.direction;
+    }
+
     // Calculate cameraToWorld matrix
     glm::vec3 target = camera.position + camera.Front();
     glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);

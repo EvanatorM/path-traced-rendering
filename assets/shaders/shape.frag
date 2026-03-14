@@ -1,5 +1,7 @@
 #version 450 core
 
+#define M_PI 3.1415926535897932384626433832795
+
 in vec3 Normal;
 in vec3 FragPos;
 
@@ -43,5 +45,5 @@ void main()
         lighting += CalculatePointLight(pointLights[i], N, FragPos);
     }
 
-    FragColor = vec4(lighting * color, 1.0);
+    FragColor = vec4(lighting * (color / M_PI), 1.0);
 }

@@ -340,14 +340,27 @@ void main()
     // Ray generation algorithm below is based on 
     // "Generating Camera Rays with Ray-Tracing: Generating Camera Rays" by Jean-Colas Prunier https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-generating-camera-rays/generating-camera-rays.html
     // Calculate point
-    float Px = (2.0 * ((float(pixelCoords.x) + 0.5) / float(imgSize.x)) - 1.0) * scale * aspectRatio;
-    float Py = (1.0 - 2.0 * ((float(pixelCoords.y) + 0.5) / float(imgSize.y))) * scale;
+    float jitterX = randomFloat();
+    float jitterY = randomFloat();
+
+    float Px = (2.0 * ((float(pixelCoords.x) + jitterX) / float(imgSize.x)) - 1.0) * scale * aspectRatio;
+    float Py = (1.0 - 2.0 * ((float(pixelCoords.y) + jitterY) / float(imgSize.y))) * scale;
 
     // Generate Ray
     vec3 rayPWorld = vec3(cameraToWorld * vec4(Px, Py, -1.0f, 1.0f));
     vec3 rayDir = normalize(rayPWorld - rayOriginWorld);
 
+    // Calculate color
     vec3 finalColor = tracePath(rayOriginWorld, rayDir);
 
-    imageStore(imgOutput, pixelCoords, vec4(finalColor, 1.0));
+    // Add color to image
+    if (frameCount == 1)
+        imageStore(imgOutput, pixelCoords, vec4(finalColor, 1.0));
+    else
+    {
+        vec3 oldColor = imageLoad(imgOutput, pixelCoords).rgb;
+        vec3 accumulatedColor = mix(oldColor, finalColor, 1.0 / float(frameCount));
+
+        imageStore(imgOutput, pixelCoords, vec4(accumulatedColor, 1.0));
+    }
 }
