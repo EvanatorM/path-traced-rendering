@@ -11,6 +11,7 @@ private:
     Scene& _scene;
     ComputeShader& _computeShader;
     GPUBuffer _sphereBuffer, _planeBuffer, _pointLightBuffer, _cubeBuffer;
+    uint32_t _frameCount = 0;
 
 public:
     PathTracer(Scene& scene, ComputeShader& computeShader) : _scene(scene), _computeShader(computeShader) {};

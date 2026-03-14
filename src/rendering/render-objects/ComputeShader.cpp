@@ -75,6 +75,11 @@ void ComputeShader::SetInt(const char* name, int value) const
     glUniform1i(glGetUniformLocation(_programId, name), value);
 }
 
+void ComputeShader::SetUInt(const char* name, uint32_t value) const
+{
+    glUniform1ui(glGetUniformLocation(_programId, name), value);
+}
+
 void ComputeShader::SetFloat(const char* name, float value) const
 {
     glUniform1f(glGetUniformLocation(_programId, name), value);

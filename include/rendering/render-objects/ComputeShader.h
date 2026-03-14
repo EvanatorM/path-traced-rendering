@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/gtc/type_ptr.hpp>
+#include <cstdint>
 
 class ComputeShader
 {
@@ -12,6 +13,7 @@ public:
 
     void SetBool(const char* name, bool value) const;
     void SetInt(const char* name, int value) const;
+    void SetUInt(const char* name, uint32_t value) const;
     void SetFloat(const char* name, float value) const;
     void SetVec2(const char* name, glm::vec2 value) const;
     void SetVec2(const char* name, float x, float y) const;

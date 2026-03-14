@@ -25,6 +25,7 @@ void PathTracer::PathTrace(const Camera& camera, int width, int height)
     _computeShader.SetVec3("rayOriginWorld", rayOriginWorld);
     _computeShader.SetFloat("fov", camera.fov);
     _computeShader.SetVec3("backgroundColor", camera.backgroundColor);
+    _computeShader.SetUInt("frameCount", ++_frameCount);
 
     _sphereBuffer.BufferData((const void*)spheres.data(), sizeof(GPUSphere) * spheres.size());
     _sphereBuffer.Bind(1);
