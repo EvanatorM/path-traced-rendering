@@ -10,6 +10,7 @@ class Rasterizer
 private:
     Scene& _scene;
     GPUBuffer _pointLightBuffer;
+    GPUBuffer _areaSphereLightBuffer;
     Shader& _shader;
 
 public:

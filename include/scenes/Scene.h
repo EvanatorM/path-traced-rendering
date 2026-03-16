@@ -3,6 +3,7 @@
 #include <scenes/Sphere.h>
 #include <scenes/Plane.h>
 #include <scenes/PointLight.h>
+#include <scenes/AreaSphereLight.h>
 #include <scenes/Cube.h>
 #include <vector>
 
@@ -21,6 +22,10 @@ public:
     {
         _pointLights.push_back(std::move(pointLight));
     }
+    void AddAreaSphereLight(AreaSphereLight areaSphereLight)
+    {
+        _areaSphereLights.push_back(std::move(areaSphereLight));
+    }
     void AddCube(Cube cube)
     {
         _cubes.push_back(std::move(cube));
@@ -29,6 +34,7 @@ public:
     const std::vector<Sphere>& GetSpheres() const { return _spheres; }
     const std::vector<Plane>& GetPlanes() const { return _planes; }
     const std::vector<PointLight>& GetPointLights() const { return _pointLights; }
+    const std::vector<AreaSphereLight>& GetAreaSphereLights() const { return _areaSphereLights; }
     const std::vector<Cube>& GetCubes() const { return _cubes; }
     std::vector<GPUSphere> GetGPUSpheres() const
     { 
@@ -51,6 +57,13 @@ public:
             pointLights.push_back(pointLight.GetGPUPointLight());
         return pointLights;
     }
+    std::vector<GPUAreaSphereLight> GetGPUAreaSphereLights() const
+    {
+        std::vector<GPUAreaSphereLight> areaSphereLights;
+        for (auto& areaSphereLight : _areaSphereLights)
+            areaSphereLights.push_back(areaSphereLight.GetGPUAreaSphereLight());
+        return areaSphereLights;
+    }
     std::vector<GPUCube> GetGPUCubes() const
     {
         std::vector<GPUCube> cubes;
@@ -62,5 +75,6 @@ private:
     std::vector<Sphere> _spheres;
     std::vector<Plane> _planes;
     std::vector<PointLight> _pointLights;
+    std::vector<AreaSphereLight> _areaSphereLights;
     std::vector<Cube> _cubes;
 };

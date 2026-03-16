@@ -28,6 +28,12 @@ struct Plane {
     vec4 color;
 };
 
+struct Cube {
+    vec4 position;
+    vec4 size;
+    vec4 color;
+};
+
 struct PointLight {
     vec3 position;
     float attenuation;
@@ -35,10 +41,13 @@ struct PointLight {
     float intensity;
 };
 
-struct Cube {
-    vec4 position;
-    vec4 size;
-    vec4 color;
+struct AreaSphereLight {
+    vec3 position;
+    float attenuation;
+    vec3 color;
+    float intensity;
+    vec3 padding;
+    float radius;
 };
 
 layout(std430, binding = 1) buffer sphereBuffer
@@ -64,6 +73,12 @@ layout(std430, binding = 4) buffer cubeBuffer
     Cube[] cubes;
 };
 uniform int numCubes;
+
+layout(std430, binding = 5) buffer areaSphereLightBuffer
+{
+    AreaSphereLight[] areaSphereLights;
+};
+uniform int numAreaSphereLights;
 
 // PCG32 PRNG
 uint pcg_state;
@@ -253,6 +268,14 @@ vec3 cosineSampleHemisphere(float u1, float u2)
     return vec3(x, y, z);
 }
 
+vec3 uniformSampleSphere(float u1, float u2)
+{
+    float z = 1.0 - 2.0 * u1;
+    float r = sqrt(max(0.0, 1.0 - z * z));
+    float phi = 2.0 * M_PI * u2;
+    return vec3(r * cos(phi), r * sin(phi), z);
+}
+
 vec3 tracePath(vec3 ro, vec3 rd)
 {
     vec3 radiance = vec3(0.0);
@@ -276,6 +299,8 @@ vec3 tracePath(vec3 ro, vec3 rd)
 
         // 1. Direct Illumination
         vec3 directLighting = vec3(0.0);
+
+        // Point Lights
         for (int i = 0; i < numPointLights; i++)
         {
             vec3 toLight = pointLights[i].position - hitPoint;
@@ -292,6 +317,36 @@ vec3 tracePath(vec3 ro, vec3 rd)
                     float attenRad = pointLights[i].attenuation;
                     float attenuation = 1.0 / (dist2 + attenRad * attenRad);
                     vec3 lightIntensity = pointLights[i].color * pointLights[i].intensity * attenuation;
+                    // BRDF is albedo / PI
+                    directLighting += lightIntensity * NdotL * (albedo / M_PI);
+                }
+            }
+        }
+
+        // Area Sphere Lights
+        for (int i = 0; i < numAreaSphereLights; i++)
+        {
+            // Get random point in the area sphere light to sample
+            float lightU1 = randomFloat();
+            float lightU2 = randomFloat();
+            vec3 lightSurfaceOffset = uniformSampleSphere(lightU1, lightU2) * areaSphereLights[i].attenuation;
+
+            vec3 targetLightPos = areaSphereLights[i].position + lightSurfaceOffset;
+            vec3 toLight = targetLightPos - hitPoint;
+
+            float dist2 = dot(toLight, toLight);
+            float dist = sqrt(dist2);
+            vec3 L = toLight / dist;
+
+            float NdotL = max(dot(normal, L), 0.0);
+            if (NdotL > 0.0)
+            {
+                // Cast shadow ray
+                if (!rayBlocked(hitPoint + normal * BIAS, L, dist))
+                {
+                    float attenRad = areaSphereLights[i].attenuation;
+                    float attenuation = 1.0 / (dist2 + attenRad * attenRad);
+                    vec3 lightIntensity = areaSphereLights[i].color * areaSphereLights[i].intensity * attenuation;
                     // BRDF is albedo / PI
                     directLighting += lightIntensity * NdotL * (albedo / M_PI);
                 }

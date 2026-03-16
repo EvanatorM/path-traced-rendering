@@ -4,8 +4,11 @@ void Rasterizer::Render(const Camera& camera)
 {
     auto pointLights = _scene.GetGPUPointLights();
     _pointLightBuffer.BufferData((const void*)pointLights.data(), sizeof(GPUPointLight) * pointLights.size());
-
     _pointLightBuffer.Bind(3);
+
+    auto areaSphereLights = _scene.GetGPUAreaSphereLights();
+    _areaSphereLightBuffer.BufferData((const void*)areaSphereLights.data(), sizeof(GPUAreaSphereLight) * areaSphereLights.size());
+    _areaSphereLightBuffer.Bind(5);
 
     auto view = camera.GetViewMatrix();
     auto proj = camera.GetProjectionMatrix();
@@ -16,6 +19,7 @@ void Rasterizer::Render(const Camera& camera)
     _shader.SetVec3("viewPos", camera.position);
 
     _shader.SetInt("numPointLights", pointLights.size());
+    _shader.SetInt("numAreaSphereLights", areaSphereLights.size());
 
     for (auto& plane : _scene.GetPlanes())
     {

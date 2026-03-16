@@ -27,6 +27,7 @@ void PathTracer::PathTrace(const Camera& camera, int width, int height)
     auto planes = _scene.GetGPUPlanes();
     auto pointLights = _scene.GetGPUPointLights();
     auto cubes = _scene.GetGPUCubes();
+    auto areaSphereLights = _scene.GetGPUAreaSphereLights();
 
     _computeShader.Bind();
     _computeShader.SetMat4("cameraToWorld", cameraToWorld);
@@ -41,15 +42,19 @@ void PathTracer::PathTrace(const Camera& camera, int width, int height)
 
     _planeBuffer.BufferData((const void*)planes.data(), sizeof(GPUPlane) * planes.size());
     _planeBuffer.Bind(2);
-    _computeShader.SetInt("numPlanes", spheres.size());
+    _computeShader.SetInt("numPlanes", planes.size());
 
     _pointLightBuffer.BufferData((const void*)pointLights.data(), sizeof(GPUPointLight) * pointLights.size());
     _pointLightBuffer.Bind(3);
-    _computeShader.SetInt("numPointLights", spheres.size());
+    _computeShader.SetInt("numPointLights", pointLights.size());
 
     _cubeBuffer.BufferData((const void*)cubes.data(), sizeof(GPUCube) * cubes.size());
     _cubeBuffer.Bind(4);
     _computeShader.SetInt("numCubes", cubes.size());
+
+    _pointLightBuffer.BufferData((const void*)areaSphereLights.data(), sizeof(GPUAreaSphereLight) * areaSphereLights.size());
+    _pointLightBuffer.Bind(5);
+    _computeShader.SetInt("numAreaSphereLights", areaSphereLights.size());
 
     glDispatchCompute((unsigned int)std::ceilf(width/16.0f), (unsigned int)std::ceilf(height/16.0f), 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
