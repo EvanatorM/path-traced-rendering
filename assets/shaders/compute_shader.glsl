@@ -8,6 +8,10 @@ layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 layout(rgba32f, binding = 0) uniform image2D imgOutput;
 
+// ----------------------------------------
+//               Scene Info
+// ----------------------------------------
+
 uniform mat4 cameraToWorld;
 uniform vec3 rayOriginWorld;
 uniform float fov;
@@ -80,6 +84,10 @@ layout(std430, binding = 5) buffer areaSphereLightBuffer
 };
 uniform int numAreaSphereLights;
 
+// ----------------------------------------
+//                   RNG
+// ----------------------------------------
+
 // PCG32 PRNG
 uint pcg_state;
 
@@ -95,6 +103,10 @@ float randomFloat()
 {
     return float(pcg_hash()) * (1.0 / 4294967295.0);
 }
+
+// ----------------------------------------
+//               Intersection
+// ----------------------------------------
 
 // Using a modified version of the function created by
 // "A Minimal Ray-Tracer: Ray-Sphere Intersection" by Jean-Colas Prunier https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
@@ -247,6 +259,10 @@ bool rayBlocked(vec3 ro, vec3 rd, float maxT)
     return false;
 }
 
+// ----------------------------------------
+//                Sampling
+// ----------------------------------------
+
 // Duff et al. 2017 Orthonormal Basis
 void buildOrthonormalBasis(vec3 N, out vec3 T, out vec3 B)
 {
@@ -275,6 +291,10 @@ vec3 uniformSampleSphere(float u1, float u2)
     float phi = 2.0 * M_PI * u2;
     return vec3(r * cos(phi), r * sin(phi), z);
 }
+
+// ----------------------------------------
+//              Path Tracing
+// ----------------------------------------
 
 vec3 tracePath(vec3 ro, vec3 rd)
 {
@@ -379,6 +399,10 @@ vec3 tracePath(vec3 ro, vec3 rd)
     return radiance;
 }
 
+// ----------------------------------------
+//                   Main
+// ----------------------------------------
+
 void main()
 {
     ivec2 pixelCoords = ivec2(gl_GlobalInvocationID.xy);
@@ -394,10 +418,11 @@ void main()
 
     // Ray generation algorithm below is based on 
     // "Generating Camera Rays with Ray-Tracing: Generating Camera Rays" by Jean-Colas Prunier https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-generating-camera-rays/generating-camera-rays.html
-    // Calculate point
+    
+    // Add jitter for anti-aliasing
     float jitterX = randomFloat();
     float jitterY = randomFloat();
-
+    // Calculate point
     float Px = (2.0 * ((float(pixelCoords.x) + jitterX) / float(imgSize.x)) - 1.0) * scale * aspectRatio;
     float Py = (1.0 - 2.0 * ((float(pixelCoords.y) + jitterY) / float(imgSize.y))) * scale;
 
@@ -409,10 +434,11 @@ void main()
     vec3 finalColor = tracePath(rayOriginWorld, rayDir);
 
     // Add color to image
-    if (frameCount == 1)
+    if (frameCount == 1) // New image, no averaging
         imageStore(imgOutput, pixelCoords, vec4(finalColor, 1.0));
     else
     {
+        // Average the new color and existing color for progressive rendering
         vec3 oldColor = imageLoad(imgOutput, pixelCoords).rgb;
         vec3 accumulatedColor = mix(oldColor, finalColor, 1.0 / float(frameCount));
 
