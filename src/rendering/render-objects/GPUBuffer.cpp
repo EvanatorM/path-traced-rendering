@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 GPUBuffer::GPUBuffer()
 {
@@ -21,4 +22,13 @@ void GPUBuffer::BufferData(const void* data, size_t dataSize)
 void GPUBuffer::Bind(int binding)
 {
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, _bufferId);
+    // Debug: verify binding
+    GLint bound = 0;
+    glGetIntegeri_v(GL_SHADER_STORAGE_BUFFER_BINDING, binding, &bound);
+    std::cout << "[GPUBuffer] glBindBufferBase(binding=" << binding << ", buffer=" << _bufferId << ") -> GL reports bound=" << bound << std::endl;
+}
+
+unsigned int GPUBuffer::GetId() const
+{
+    return _bufferId;
 }

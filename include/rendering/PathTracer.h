@@ -10,7 +10,7 @@ class PathTracer
 private:
     Scene& _scene;
     ComputeShader& _computeShader;
-    GPUBuffer _sphereBuffer, _planeBuffer, _pointLightBuffer, _cubeBuffer;
+    GPUBuffer _sphereBuffer, _planeBuffer, _pointLightBuffer, _cubeBuffer, _quadLightBuffer;
     uint32_t _frameCount = 0;
     glm::vec3 _prevCamPos, _prevCamDir;
 

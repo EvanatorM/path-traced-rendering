@@ -17,13 +17,15 @@ struct PointLight {
     float intensity;
 };
 
-struct AreaSphereLight {
+struct QuadLight {
     vec3 position;
-    float attenuation;
-    vec3 color;
     float intensity;
-    vec3 padding;
-    float radius;
+    vec3 u;
+    float attenuation;
+    vec3 v;
+    float padding1;
+    vec3 color;
+    float padding2;
 };
 
 layout(std430, binding = 3) buffer pointLightBuffer
@@ -32,11 +34,11 @@ layout(std430, binding = 3) buffer pointLightBuffer
 };
 uniform int numPointLights;
 
-layout(std430, binding = 5) buffer areaSphereLightBuffer
+layout(std430, binding = 5) buffer quadLightBuffer
 {
-    AreaSphereLight[] areaSphereLights;
+    QuadLight[] quadLights;
 };
-uniform int numAreaSphereLights;
+uniform int numQuadLights;
 
 vec3 CalculatePointLight(PointLight light, vec3 normal, vec3 fragPos)
 {
@@ -50,8 +52,9 @@ vec3 CalculatePointLight(PointLight light, vec3 normal, vec3 fragPos)
     return radiance * NdotL;
 }
 
-vec3 CalculateAreaSphereLight(AreaSphereLight light, vec3 normal, vec3 fragPos)
+vec3 CalculateQuadLight(QuadLight light, vec3 normal, vec3 fragPos)
 {
+    // For rasterized pass we approximate the quad light as a point at its center
     vec3 toLight = light.position - fragPos;
     float dist2 = max(dot(toLight, toLight), 1e-6);
     vec3 L = toLight * inversesqrt(dist2);
@@ -71,9 +74,9 @@ void main()
     {
         lighting += CalculatePointLight(pointLights[i], N, FragPos);
     }
-    for (int i = 0; i < numAreaSphereLights; i++)
+    for (int i = 0; i < numQuadLights; i++)
     {
-        lighting += CalculateAreaSphereLight(areaSphereLights[i], N, FragPos);
+        lighting += CalculateQuadLight(quadLights[i], N, FragPos);
     }
 
     FragColor = vec4(lighting * (color / M_PI), 1.0);

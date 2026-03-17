@@ -14,4 +14,5 @@ public:
     void BufferData(const void* data, size_t dataSize);
 
     void Bind(int binding);
+    unsigned int GetId() const;
 };

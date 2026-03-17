@@ -45,13 +45,15 @@ struct PointLight {
     float intensity;
 };
 
-struct AreaSphereLight {
+struct QuadLight {
     vec3 position;
-    float attenuation;
-    vec3 color;
     float intensity;
-    vec3 padding;
-    float radius;
+    vec3 u;
+    float attenuation;
+    vec3 v;
+    float padding1;
+    vec3 color;
+    float padding2;
 };
 
 layout(std430, binding = 1) buffer sphereBuffer
@@ -78,17 +80,18 @@ layout(std430, binding = 4) buffer cubeBuffer
 };
 uniform int numCubes;
 
-layout(std430, binding = 5) buffer areaSphereLightBuffer
+layout(std430, binding = 5) buffer quadLightBuffer
 {
-    AreaSphereLight[] areaSphereLights;
+    QuadLight[] quadLights;
 };
-uniform int numAreaSphereLights;
+uniform int numQuadLights;
 
 // ----------------------------------------
 //                   RNG
 // ----------------------------------------
 
-// PCG32 PRNG
+// PCG32 PRNG implementation based on
+// "PCG random number generators in glsl" by Riccardo https://observablehq.com/@riccardoscalco/pcg-random-number-generators-in-glsl
 uint pcg_state;
 
 uint pcg_hash()
@@ -284,14 +287,6 @@ vec3 cosineSampleHemisphere(float u1, float u2)
     return vec3(x, y, z);
 }
 
-vec3 uniformSampleSphere(float u1, float u2)
-{
-    float z = 1.0 - 2.0 * u1;
-    float r = sqrt(max(0.0, 1.0 - z * z));
-    float phi = 2.0 * M_PI * u2;
-    return vec3(r * cos(phi), r * sin(phi), z);
-}
-
 // ----------------------------------------
 //              Path Tracing
 // ----------------------------------------
@@ -342,39 +337,50 @@ vec3 tracePath(vec3 ro, vec3 rd)
                 }
             }
         }
-
-        // Area Sphere Lights
-        for (int i = 0; i < numAreaSphereLights; i++)
+        directLighting += vec3(100.0);
+        // Quad Lights
+        for (int i = 0; i < numQuadLights; i++)
         {
-            // Get random point in the area sphere light to sample
-            float lightU1 = randomFloat();
-            float lightU2 = randomFloat();
-            vec3 lightSurfaceOffset = uniformSampleSphere(lightU1, lightU2) * areaSphereLights[i].attenuation;
+            directLighting += vec3(100.0);
+            // Sample a random point on the light
+            float u1 = randomFloat();
+            float u2 = randomFloat();
+            vec3 lightPoint = quadLights[i].position + (quadLights[i].u * u1) + (quadLights[i].v * u2);
 
-            vec3 targetLightPos = areaSphereLights[i].position + lightSurfaceOffset;
-            vec3 toLight = targetLightPos - hitPoint;
-
+            // Calculate distance and direction to light
+            vec3 toLight = lightPoint - hitPoint;
             float dist2 = dot(toLight, toLight);
             float dist = sqrt(dist2);
             vec3 L = toLight / dist;
 
+            // Check if light is hitting the front of the surface
             float NdotL = max(dot(normal, L), 0.0);
             if (NdotL > 0.0)
             {
-                // Cast shadow ray
-                if (!rayBlocked(hitPoint + normal * BIAS, L, dist))
+                // Calculate the normal of the light
+                vec3 lightNormal = normalize(cross(quadLights[i].u, quadLights[i].v));
+                // Check if the surface is facing the front of the light
+                float lightCos = max(dot(lightNormal, -L), 0.0);
+
+                if (lightCos > 0.0)
                 {
-                    float attenRad = areaSphereLights[i].attenuation;
-                    float attenuation = 1.0 / (dist2 + attenRad * attenRad);
-                    vec3 lightIntensity = areaSphereLights[i].color * areaSphereLights[i].intensity * attenuation;
-                    // BRDF is albedo / PI
-                    directLighting += lightIntensity * NdotL * (albedo / M_PI);
+                    // Cast shadow ray
+                    if (!rayBlocked(hitPoint + normal * BIAS, L, dist))
+                    {
+                        float attenRad = quadLights[i].attenuation;
+                        float attenuation = 1.0 / (dist2 + attenRad * attenRad);
+                        vec3 lightIntensity = quadLights[i].color * quadLights[i].intensity * attenuation;
+                        // BRDF is albedo / PI
+                        directLighting += lightIntensity * NdotL * (albedo / M_PI);
+                    }
                 }
             }
         }
         radiance += throughput * directLighting;
 
         // 2. Indirect Lighting (Monte Carlo)
+        // Based on methods found in
+        // "Global Illumination and Path Tracing: a Practical Implementation" by Jean-Colas Prunier https://www.scratchapixel.com/lessons/3d-basic-rendering/global-illumination-path-tracing/global-illumination-path-tracing-practical-implementation.html
         float u1 = randomFloat();
         float u2 = randomFloat();
         vec3 localSample = cosineSampleHemisphere(u1, u2);

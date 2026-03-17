@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 void PathTracer::PathTrace(const Camera& camera, int width, int height)
 {
@@ -27,7 +28,7 @@ void PathTracer::PathTrace(const Camera& camera, int width, int height)
     auto planes = _scene.GetGPUPlanes();
     auto pointLights = _scene.GetGPUPointLights();
     auto cubes = _scene.GetGPUCubes();
-    auto areaSphereLights = _scene.GetGPUAreaSphereLights();
+    auto quadLights = _scene.GetGPUQuadLights();
 
     _computeShader.Bind();
     _computeShader.SetMat4("cameraToWorld", cameraToWorld);
@@ -52,9 +53,10 @@ void PathTracer::PathTrace(const Camera& camera, int width, int height)
     _cubeBuffer.Bind(4);
     _computeShader.SetInt("numCubes", cubes.size());
 
-    _pointLightBuffer.BufferData((const void*)areaSphereLights.data(), sizeof(GPUAreaSphereLight) * areaSphereLights.size());
-    _pointLightBuffer.Bind(5);
-    _computeShader.SetInt("numAreaSphereLights", areaSphereLights.size());
+    std::cout << "Num Quad Lights: " << quadLights.size() << std::endl;
+    _quadLightBuffer.BufferData((const void*)quadLights.data(), sizeof(GPUQuadLight) * quadLights.size());
+    _quadLightBuffer.Bind(5);
+    _computeShader.SetInt("numQuadLights", quadLights.size());
 
     glDispatchCompute((unsigned int)std::ceilf(width/16.0f), (unsigned int)std::ceilf(height/16.0f), 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
