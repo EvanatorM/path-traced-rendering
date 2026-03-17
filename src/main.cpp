@@ -31,18 +31,14 @@ int main()
     // Initialize scene (Cornell Box)
     Scene scene;
     scene.AddPlane(Plane(glm::vec3(0.0f, -2.5f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f)));
-    scene.AddCube(Cube(glm::vec3(0.0f, -1.0f, -5.0f), glm::vec3(5.0f, 5.0f, 0.5f), glm::vec3(1.0f)));
-    scene.AddSphere(Sphere(glm::vec3(-1.0f, -1.0f, -3.0f), glm::vec3(1.0f, 0.2f, 0.2f), 1.0f));
-    /*
-    scene.AddSphere(Sphere(glm::vec3(0.0f, 0.0f, -3.0f), glm::vec3(1.0f, 1.0f, 1.0f), 0.5f));
-    scene.AddSphere(Sphere(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(1.0f, 0.2f, 0.2f), 1.0f));
-    scene.AddSphere(Sphere(glm::vec3(1.0f, 0.0f, -8.0f), glm::vec3(0.2f, 0.2f, 1.0f), 1.0f));
-    scene.AddSphere(Sphere(glm::vec3(-1.0f, -1.0f, -8.0f), glm::vec3(0.2f, 1.0f, 0.2f), 0.5f));
-    scene.AddCube(Cube(glm::vec3(-3.0f, -1.0f, -1.5f), glm::vec3(1.0f), glm::vec3(1.0f, 0.3f, 1.0f)));
-    */
+    scene.AddCube(Cube(glm::vec3(0.0f, 0.0f, -2.75f), glm::vec3(5.0f, 5.0f, 0.5f), glm::vec3(1.0f)));
+    scene.AddCube(Cube(glm::vec3(0.0f, 2.75f, 0.0f), glm::vec3(6.0f, 0.5f, 6.0f), glm::vec3(1.0f)));
+    scene.AddCube(Cube(glm::vec3(-2.75f, 0.0f, 0.0f), glm::vec3(0.5f, 5.0f, 5.0f), glm::vec3(1.0f, 0.25f, 0.25f)));
+    scene.AddCube(Cube(glm::vec3(2.75f, 0.0f, 0.0f), glm::vec3(0.5f, 5.0f, 5.0f), glm::vec3(0.25, 1.0f, 0.25f)));
+    scene.AddCube(Cube(glm::vec3(1.0f, -1.0f, -1.5f), glm::vec3(1.5f, 3.0f, 1.5f), glm::vec3(1.0f)));
+    scene.AddSphere(Sphere(glm::vec3(-1.25f, -1.75f, -0.5f), glm::vec3(1.0f), 0.75f));
     
-    scene.AddQuadLight(QuadLight(glm::vec3(0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f), 20.0f, 3.0f));
-    //scene.AddQuadLight(QuadLight(glm::vec3(-0.5f, 1.0f, -7.0f), glm::vec3(0.3f, 0.3f, 1.0f), 20.0f, 3.0f, 0.25f));
+    scene.AddQuadLight(QuadLight(glm::vec3(-0.5f, 2.499f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(1.0f), 20.0f, 3.0f));
 
     const unsigned int TEXTURE_WIDTH = 1920, TEXTURE_HEIGHT = 1080;
 
@@ -53,7 +49,7 @@ int main()
     glfwSetCursorPosCallback(window.GetWindow(), mouseCallback);
     glfwSetKeyCallback(window.GetWindow(), keyCallback);
 
-    camera = new Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -90.0f, 0.0f), 70.0f, glm::vec3(0.1f));
+    camera = new Camera(glm::vec3(0.0f, 0.0f, 4.5f), glm::vec3(0.0f, -90.0f, 0.0f), 70.0f, glm::vec3(0.1f));
 
     // Create test texture
     Texture pathTracedTexture(TEXTURE_WIDTH, TEXTURE_HEIGHT);

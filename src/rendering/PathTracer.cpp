@@ -53,7 +53,6 @@ void PathTracer::PathTrace(const Camera& camera, int width, int height)
     _cubeBuffer.Bind(4);
     _computeShader.SetInt("numCubes", cubes.size());
 
-    std::cout << "Num Quad Lights: " << quadLights.size() << std::endl;
     _quadLightBuffer.BufferData((const void*)quadLights.data(), sizeof(GPUQuadLight) * quadLights.size());
     _quadLightBuffer.Bind(5);
     _computeShader.SetInt("numQuadLights", quadLights.size());

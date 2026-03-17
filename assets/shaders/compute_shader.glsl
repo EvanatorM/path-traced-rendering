@@ -205,10 +205,32 @@ bool intersectCube(vec3 ro, vec3 rd, Cube c, out float t, out vec3 normal)
     return true;
 }
 
-bool getSceneIntersection(vec3 ro, vec3 rd, out float closestT, out vec3 normal, out vec3 albedo)
+bool intersectQuad(vec3 ro, vec3 rd, QuadLight q, out float t, out vec3 normal)
+{
+    normal = normalize(cross(q.u, q.v));
+
+    float denom = dot(normal, rd);
+    if (abs(denom) < 1e-6) return false;
+
+    vec3 p0l0 = q.position - ro;
+    t = dot(p0l0, normal) / denom;
+    if (t < 0.0) return false;
+
+    vec3 hitPoint = ro + rd * t;
+    vec3 vi = hitPoint - q.position;
+
+    float uu = dot(vi, q.u) / dot(q.u, q.u);
+    float vv = dot(vi, q.v) / dot(q.v, q.v);
+
+    return (uu >= 0.0 && uu <= 1.0 && vv >= 0.0 && vv <= 1.0);
+}
+
+bool getSceneIntersection(vec3 ro, vec3 rd, out float closestT, out vec3 normal, out vec3 albedo, out vec3 emission, out bool hitLight)
 {
     closestT = 1e20;
     bool hit = false;
+    hitLight = false;
+    emission = vec3(0.0);
     float t;
     vec3 n;
 
@@ -239,6 +261,17 @@ bool getSceneIntersection(vec3 ro, vec3 rd, out float closestT, out vec3 normal,
             closestT = t;
             normal = n;
             albedo = cubes[i].color.rgb;
+            hit = true;
+        }
+    }
+    for (int i = 0; i < numQuadLights; i++)
+    {
+        if (intersectQuad(ro, rd, quadLights[i], t, n) && t < closestT)
+        {
+            closestT = t;
+            normal = n;
+            hitLight = true;
+            emission = quadLights[i].color * quadLights[i].intensity;
             hit = true;
         }
     }
@@ -303,10 +336,24 @@ vec3 tracePath(vec3 ro, vec3 rd)
         float t;
         vec3 normal;
         vec3 albedo;
+        vec3 emission;
+        bool hitLight;
 
-        if (!getSceneIntersection(currentRayOrigin, currentRayDir, t, normal, albedo))
+        if (!getSceneIntersection(currentRayOrigin, currentRayDir, t, normal, albedo, emission, hitLight))
         {
             radiance += throughput * backgroundColor;
+            break;
+        }
+
+        // Handle hitting a light source directly
+        if (hitLight)
+        {
+            // Only add emission if it's the first camera ray
+            // When adding specular/mirror materials, emission will be added if the prev bounce is perfectly specular
+            if (bounce == 0)
+                radiance += throughput * emission;
+
+            // Stop tracing when light is hit
             break;
         }
 
@@ -337,11 +384,9 @@ vec3 tracePath(vec3 ro, vec3 rd)
                 }
             }
         }
-        directLighting += vec3(100.0);
         // Quad Lights
         for (int i = 0; i < numQuadLights; i++)
         {
-            directLighting += vec3(100.0);
             // Sample a random point on the light
             float u1 = randomFloat();
             float u2 = randomFloat();
