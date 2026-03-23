@@ -31,8 +31,8 @@ layout(std430, binding = 6) buffer materialBuffer
 struct Sphere {
     vec3 center;
     float radius;
-    uint matIndex;
     vec3 padding;
+    uint matIndex;
 };
 
 struct Plane {
@@ -483,7 +483,7 @@ vec3 tracePath(vec3 ro, vec3 rd)
 
                     float D = D_GGX(max(dot(normal, H), 0.0), alpha);
                     float G = G_Smith(NdotL, NdotV, alpha);
-                    vec3 specular = (D * G * F) / (4.0 * NdotL * NdotV + 0.001);
+                    vec3 specular = D * G * F;
                     
                     directLighting += lightIntensity * NdotL * (kD * albedo / M_PI + specular);
                 }
@@ -525,7 +525,7 @@ vec3 tracePath(vec3 ro, vec3 rd)
 
                         float D = D_GGX(NdotH, alpha);
                         float G = G_Smith(NdotL, NdotV, alpha);
-                        vec3 specular = (D * G * F) / (4.0 * NdotL * NdotV + 0.001);
+                        vec3 specular = D * G * F;
                         vec3 brdf = (kD * albedo / M_PI) + specular;
 
                         // Calculate the BRDF PDF for the MIS weight
@@ -579,7 +579,7 @@ vec3 tracePath(vec3 ro, vec3 rd)
 
         float D = D_GGX(NdotH, alpha);
         float G = G_Smith(NdotL, NdotV, alpha);
-        vec3 specular = (D * G * F) / (4.0 * NdotL * NdotV + 0.001);
+        vec3 specular = D * G * F;
         vec3 diffuse = (kD * albedo / M_PI);
 
         float pdfDiffuse = NdotL / M_PI;
