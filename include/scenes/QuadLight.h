@@ -28,7 +28,6 @@ struct QuadLight : public SceneObject
 
     GPUQuadLight GetGPUQuadLight() const
     {
-        return { position, intensity, u, attenuation, v, materialIndex, color, 1.0f };
-
+        return { position, intensity, u, attenuation, v, materialIndex, color, glm::length(glm::cross(u, v)) };
     }
 };

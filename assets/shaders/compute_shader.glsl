@@ -233,11 +233,12 @@ bool intersectQuad(vec3 ro, vec3 rd, QuadLight q, out float t, out vec3 normal)
     return (uu >= 0.0 && uu <= 1.0 && vv >= 0.0 && vv <= 1.0);
 }
 
-bool getSceneIntersection(vec3 ro, vec3 rd, out float closestT, out vec3 normal, out uint matIndex, out bool hitLight)
+bool getSceneIntersection(vec3 ro, vec3 rd, out float closestT, out vec3 normal, out uint matIndex, out bool hitLight, out float hitLightArea)
 {
     closestT = 1e20;
     bool hit = false;
     hitLight = false;
+    hitLightArea = 0.0;
     float t;
     vec3 n;
 
@@ -279,6 +280,7 @@ bool getSceneIntersection(vec3 ro, vec3 rd, out float closestT, out vec3 normal,
             normal = n;
             matIndex = quadLights[i].matIndex;
             hitLight = true;
+            hitLightArea = quadLights[i].area;
             hit = true;
         }
     }
@@ -411,8 +413,9 @@ vec3 tracePath(vec3 ro, vec3 rd)
         vec3 normal;
         uint matIndex;
         bool hitLight;
+        float hitLightArea;
 
-        if (!getSceneIntersection(currentRayOrigin, currentRayDir, t, normal, matIndex, hitLight))
+        if (!getSceneIntersection(currentRayOrigin, currentRayDir, t, normal, matIndex, hitLight, hitLightArea))
         {
             radiance += throughput * backgroundColor;
             break;
@@ -429,13 +432,15 @@ vec3 tracePath(vec3 ro, vec3 rd)
         if (hitLight || length(emission) > 0.0)
         {
             // Only add emission if it's the first camera ray
-            if (bounce == 0 || lastBounceSpecular)
+            if (bounce == 0)
                 radiance += throughput * emission;
             else
             {
                 // Resolve MIS: Weigh probability of the BRDF generating this ray
                 // against the probability that light sampling could have generated it.
-                float lightPdf = 1.0;
+                float lightCos = max(dot(normal, -currentRayDir), 0.001);
+
+                float lightPdf = (t * t) / (hitLightArea * lightCos);
                 float weight = balanceHeuristic(lastPdfBrdf, lightPdf);
                 radiance += throughput * emission * weight;
             }
@@ -586,7 +591,7 @@ vec3 tracePath(vec3 ro, vec3 rd)
         // Multiply throughput by BRDF. Divide by PDF
         throughput *= (diffuse + specular) * NdotL / lastPdfBrdf;
         currentRayDir = nextDir;
-        currentRayOrigin = hitPoint + normal + BIAS;
+        currentRayOrigin = hitPoint + normal * BIAS;
 
         // 4. Unbiased Russian Roulette Path Termination
         // Eliminates fixed-depth mathematical bias by statistically terminating
