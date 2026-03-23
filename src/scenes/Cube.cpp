@@ -11,7 +11,7 @@ void Cube::RenderRaster(Shader& shader) const
     model = glm::translate(model, position);
     model = glm::scale(model, size);
     shader.SetMat4("model", model);
-    shader.SetVec3("color", color);
+    shader.SetVec3("color", glm::vec3(1.0f));
 
     mesh.Draw();
 }

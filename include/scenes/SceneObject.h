@@ -6,8 +6,8 @@
 struct SceneObject
 {
     glm::vec3 position;
-    glm::vec3 color;
+    uint32_t materialIndex;
 
-    SceneObject() : position(0.0f), color(1.0f) {}
-    SceneObject(const glm::vec3& pos, const glm::vec3& col) : position(pos), color(col) {}
+    SceneObject() : position(0.0f), materialIndex(0) {}
+    SceneObject(const glm::vec3& pos, uint32_t materialIndex) : position(pos), materialIndex(materialIndex) {}
 };

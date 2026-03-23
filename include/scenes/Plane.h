@@ -7,10 +7,9 @@
 struct GPUPlane
 {
     glm::vec3 offset;
-    float padding1;
+    uint32_t matIndex;
     glm::vec3 orientation;
-    float padding2;
-    glm::vec4 color;
+    float padding;
 };
 #pragma pack()
 
@@ -18,8 +17,8 @@ struct Plane : public SceneObject
 {
     glm::vec3 orientation;
 
-    Plane(const glm::vec3& pos, const glm::vec3& orientation, const glm::vec3& col)
-        : SceneObject(pos, col), orientation(glm::normalize(orientation)) {}
+    Plane(const glm::vec3& pos, const glm::vec3& orientation, uint32_t materialIndex = 0)
+        : SceneObject(pos, materialIndex), orientation(glm::normalize(orientation)) {}
     Plane()
         : SceneObject(), orientation(glm::vec3(0.0f)) {}
 
@@ -27,6 +26,6 @@ struct Plane : public SceneObject
 
     GPUPlane GetGPUPlane() const
     {
-        return { position, 0.0f, orientation, 0.0f, { color.r, color.g, color.b, 1.0f } };
+        return { position, materialIndex, orientation, 0.0f };
     }
 };

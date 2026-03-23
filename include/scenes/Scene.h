@@ -5,11 +5,17 @@
 #include <scenes/PointLight.h>
 #include <scenes/QuadLight.h>
 #include <scenes/Cube.h>
+#include <scenes/Material.h>
 #include <vector>
 
 class Scene
 {
 public:
+    void AddMaterial(Material material)
+    {
+        _materials.push_back(std::move(material));
+    }
+
     void AddSphere(Sphere sphere)
     {
         _spheres.push_back(std::move(sphere));
@@ -31,6 +37,8 @@ public:
     {
         _quadLights.push_back(std::move(quadLight));
     }
+
+    const std::vector<Material>& GetMaterials() const { return _materials; }
     
     const std::vector<Sphere>& GetSpheres() const { return _spheres; }
     const std::vector<Plane>& GetPlanes() const { return _planes; }
@@ -38,6 +46,14 @@ public:
 
     const std::vector<PointLight>& GetPointLights() const { return _pointLights; }
     const std::vector<QuadLight>& GetQuadLights() const { return _quadLights; }
+
+    std::vector<GPUMaterial> GetGPUMaterials() const
+    {
+        std::vector<GPUMaterial> materials;
+        for (auto& mat : _materials)
+            materials.push_back(mat.GetGPUMaterial());
+        return materials;
+    }
 
     std::vector<GPUSphere> GetGPUSpheres() const
     { 
@@ -76,6 +92,8 @@ public:
         return quadLights;
     }
 private:
+    std::vector<Material> _materials;
+
     std::vector<Sphere> _spheres;
     std::vector<Plane> _planes;
     std::vector<Cube> _cubes;

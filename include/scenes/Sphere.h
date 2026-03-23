@@ -8,7 +8,8 @@ struct GPUSphere
 {
     glm::vec3 center;
     float radius;
-    glm::vec4 color;
+    uint32_t matIndex;
+    glm::vec3 padding;
 };
 #pragma pack()
 
@@ -16,8 +17,8 @@ struct Sphere : public SceneObject
 {
     float radius;
 
-    Sphere(const glm::vec3& pos, const glm::vec3& col, float r)
-        : SceneObject(pos, col), radius(r) {}
+    Sphere(const glm::vec3& pos, uint32_t materialIndex, float r)
+        : SceneObject(pos, materialIndex), radius(r) {}
     Sphere(float r)
         : SceneObject(), radius(r) {}
     Sphere()
@@ -27,6 +28,6 @@ struct Sphere : public SceneObject
 
     GPUSphere GetGPUSphere() const
     {
-        return { position, radius, { color.r, color.g, color.b, 1.0f } };
+        return { position, radius, materialIndex, glm::vec3(0.0f) };
     }
 };

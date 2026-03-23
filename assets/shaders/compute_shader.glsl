@@ -1,7 +1,7 @@
 #version 450 core
 
 #define M_PI 3.1415926535897932384626433832795
-#define MAX_BOUNCES 4
+#define MAX_BOUNCES 8
 #define BIAS 0.001
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
@@ -18,24 +18,34 @@ uniform float fov;
 uniform vec3 backgroundColor;
 uniform uint frameCount;
 
+struct Material {
+    vec4 albedo_roughness;
+    vec4 emission_metallic;
+};
+
+layout(std430, binding = 6) buffer materialBuffer
+{
+    Material[] materials;
+};
+
 struct Sphere {
     vec3 center;
     float radius;
-    vec4 color;
+    uint matIndex;
+    vec3 padding;
 };
 
 struct Plane {
     vec3 offset;
-    float padding1;
+    uint matIndex;
     vec3 orientation;
-    float padding2;
-    vec4 color;
+    float padding;
 };
 
 struct Cube {
     vec4 position;
-    vec4 size;
-    vec4 color;
+    vec3 size;
+    uint matIndex;
 };
 
 struct PointLight {
@@ -51,9 +61,9 @@ struct QuadLight {
     vec3 u;
     float attenuation;
     vec3 v;
-    float padding1;
+    uint matIndex;
     vec3 color;
-    float padding2;
+    float area;
 };
 
 layout(std430, binding = 1) buffer sphereBuffer
@@ -91,7 +101,7 @@ uniform int numQuadLights;
 // ----------------------------------------
 
 // PCG32 PRNG implementation based on
-// "PCG random number generators in glsl" by Riccardo https://observablehq.com/@riccardoscalco/pcg-random-number-generators-in-glsl
+// "PCG random number generators in glsl" by Riccardo (https://observablehq.com/@riccardoscalco/pcg-random-number-generators-in-glsl)
 uint pcg_state;
 
 uint pcg_hash()
@@ -112,19 +122,17 @@ float randomFloat()
 // ----------------------------------------
 
 // Using a modified version of the function created by
-// "A Minimal Ray-Tracer: Ray-Sphere Intersection" by Jean-Colas Prunier https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
+// "A Minimal Ray-Tracer: Ray-Sphere Intersection" by Jean-Colas Prunier (https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html)
 bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t, out vec3 normal)
 {
-    float t0, t1;
-
     vec3 L = s.center - ro;
     float tca = dot(L, rd);
     if (tca < 0) return false;
     float d2 = dot(L, L) - tca * tca;
     if (d2 > s.radius * s.radius) return false;
     float thc = sqrt(s.radius * s.radius - d2);
-    t0 = tca - thc;
-    t1 = tca + thc;
+    float t0 = tca - thc;
+    float t1 = tca + thc;
 
     if (t0 > t1)
     {
@@ -147,7 +155,7 @@ bool intersectSphere(vec3 ro, vec3 rd, Sphere s, out float t, out vec3 normal)
 }
 
 // Using a modified version of the function created by
-// "A Minimal Ray-Tracer: Ray-Plane and Ray-Disk Intersection" by Jean-Colas Prunier https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection.html
+// "A Minimal Ray-Tracer: Ray-Plane and Ray-Disk Intersection" by Jean-Colas Prunier (https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-plane-and-ray-disk-intersection.html)
 bool intersectPlane(vec3 ro, vec3 rd, Plane p, out float t, out vec3 normal)
 {
     float denom = dot(p.orientation, rd);
@@ -167,7 +175,7 @@ bool intersectPlane(vec3 ro, vec3 rd, Plane p, out float t, out vec3 normal)
 }
 
 // Using a modified version based on the contents of
-// "An Efficient and Robust Ray–Box Intersection Algorithm" by Amy Williams et al. https://people.csail.mit.edu/amy/papers/box-jgt.pdf
+// "An Efficient and Robust Ray–Box Intersection Algorithm" by Amy Williams et al. (https://people.csail.mit.edu/amy/papers/box-jgt.pdf)
 bool intersectCube(vec3 ro, vec3 rd, Cube c, out float t, out vec3 normal)
 {
     vec3 halfSize = c.size.xyz * 0.5;
@@ -225,12 +233,11 @@ bool intersectQuad(vec3 ro, vec3 rd, QuadLight q, out float t, out vec3 normal)
     return (uu >= 0.0 && uu <= 1.0 && vv >= 0.0 && vv <= 1.0);
 }
 
-bool getSceneIntersection(vec3 ro, vec3 rd, out float closestT, out vec3 normal, out vec3 albedo, out vec3 emission, out bool hitLight)
+bool getSceneIntersection(vec3 ro, vec3 rd, out float closestT, out vec3 normal, out uint matIndex, out bool hitLight)
 {
     closestT = 1e20;
     bool hit = false;
     hitLight = false;
-    emission = vec3(0.0);
     float t;
     vec3 n;
 
@@ -240,7 +247,7 @@ bool getSceneIntersection(vec3 ro, vec3 rd, out float closestT, out vec3 normal,
         {
             closestT = t;
             normal = n;
-            albedo = spheres[i].color.rgb;
+            matIndex = spheres[i].matIndex;
             hit = true;
         }
     }
@@ -250,7 +257,7 @@ bool getSceneIntersection(vec3 ro, vec3 rd, out float closestT, out vec3 normal,
         {
             closestT = t;
             normal = n;
-            albedo = planes[i].color.rgb;
+            matIndex = planes[i].matIndex;
             hit = true;
         }
     }
@@ -260,7 +267,7 @@ bool getSceneIntersection(vec3 ro, vec3 rd, out float closestT, out vec3 normal,
         {
             closestT = t;
             normal = n;
-            albedo = cubes[i].color.rgb;
+            matIndex = cubes[i].matIndex;
             hit = true;
         }
     }
@@ -270,8 +277,8 @@ bool getSceneIntersection(vec3 ro, vec3 rd, out float closestT, out vec3 normal,
         {
             closestT = t;
             normal = n;
+            matIndex = quadLights[i].matIndex;
             hitLight = true;
-            emission = quadLights[i].color * quadLights[i].intensity;
             hit = true;
         }
     }
@@ -320,6 +327,69 @@ vec3 cosineSampleHemisphere(float u1, float u2)
     return vec3(x, y, z);
 }
 
+// Evaluates the distribution of visible normals.
+// Based on algorithm by Dupuy & Benyoub (2023)
+vec3 sampleVndf_GGX(vec2 u, vec3 wi, float alpha, vec3 n)
+{
+    vec3 wi_z = n * dot(wi, n);
+    vec3 wi_xy = wi - wi_z;
+    vec3 wiStd = normalize(wi_z - alpha * wi_xy);
+
+    float wiStd_z = dot(wiStd, n);
+    float phi = (2.0 * u.x - 1.0) * M_PI;
+    float z = (1.0 - u.y) * (1.0 + wiStd_z) - wiStd_z;
+    float sinTheta = sqrt(clamp(1.0 - z * z, 0.0, 1.0));
+
+    vec3 cStd = vec3(sinTheta * cos(phi), sinTheta * sin(phi), z);
+    vec3 up = vec3(0.0, 0.0, 1.0);
+    vec3 wr = n + up;
+    vec3 c = dot(wr, cStd) * wr / wr.z - cStd;
+
+    vec3 wmStd = c + wiStd;
+    vec3 wmStd_z = n * dot(n, wmStd);
+    vec3 wmStd_xy = wmStd_z - wmStd;
+
+    return normalize(wmStd_z + alpha * wmStd_xy);
+}
+
+// Trowbridge-Reitz (GGX) Normal Distribution Function
+float D_GGX(float NdotH, float alpha)
+{
+    float a2 = alpha * alpha;
+    float denom = (NdotH * NdotH * (a2 - 1.0) + 1.0);
+    return a2 / (M_PI * denom * denom);
+}
+
+// Smith Correlated Masking-Shadowing Function
+float G_Smith(float NdotL, float NdotV, float alpha)
+{
+    float a2 = alpha * alpha;
+    float gl = NdotL + sqrt(a2 + (1.0 - a2) * NdotL * NdotL);
+    float gv = NdotV + sqrt(a2 + (1.0 - a2) * NdotV * NdotV);
+    return 1.0 / (gl * gv);
+}
+
+// Schlick's Approximation of Fresnel Reflectance
+vec3 F_Schlick(float cosTheta, vec3 F0)
+{
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+// Probability Density Function corresponding to the GGX VNDF
+float PDF_VNDF_GGX(float NdotH, float NdotV, float alpha)
+{
+    float D = D_GGX(NdotH, alpha);
+    float G1 = 2.0 * NdotV / (NdotV + sqrt(alpha * alpha + (1.0 - alpha * alpha) * NdotV * NdotV));
+    return (D * G1) / (4.0 * NdotV);
+}
+
+// Multiple Importance Sampling (Veach Balance Heuristic)
+// Combines the PDFs of light sampling and BRDF sampling to minimize variance
+float balanceHeuristic(float pdfA, float pdfB)
+{
+    return pdfA / (pdfA + pdfB);
+}
+
 // ----------------------------------------
 //              Path Tracing
 // ----------------------------------------
@@ -331,38 +401,60 @@ vec3 tracePath(vec3 ro, vec3 rd)
     vec3 currentRayOrigin = ro;
     vec3 currentRayDir = rd;
 
+    // State trackers for MIS
+    float lastPdfBrdf = 1.0;
+    bool lastBounceSpecular = true;
+
     for (int bounce = 0; bounce < MAX_BOUNCES; bounce++)
     {
         float t;
         vec3 normal;
-        vec3 albedo;
-        vec3 emission;
+        uint matIndex;
         bool hitLight;
 
-        if (!getSceneIntersection(currentRayOrigin, currentRayDir, t, normal, albedo, emission, hitLight))
+        if (!getSceneIntersection(currentRayOrigin, currentRayDir, t, normal, matIndex, hitLight))
         {
             radiance += throughput * backgroundColor;
             break;
         }
 
-        // Handle hitting a light source directly
-        if (hitLight)
+        // Get material properties
+        Material mat = materials[matIndex];
+        vec3 albedo = mat.albedo_roughness.rgb;
+        float roughness = max(mat.albedo_roughness.a, 0.001);
+        vec3 emission = mat.emission_metallic.rgb;
+        float metallic = mat.emission_metallic.a;
+
+        // 1. Evaluate Emission (if hit light source)
+        if (hitLight || length(emission) > 0.0)
         {
             // Only add emission if it's the first camera ray
-            // When adding specular/mirror materials, emission will be added if the prev bounce is perfectly specular
-            if (bounce == 0)
+            if (bounce == 0 || lastBounceSpecular)
                 radiance += throughput * emission;
+            else
+            {
+                // Resolve MIS: Weigh probability of the BRDF generating this ray
+                // against the probability that light sampling could have generated it.
+                float lightPdf = 1.0;
+                float weight = balanceHeuristic(lastPdfBrdf, lightPdf);
+                radiance += throughput * emission * weight;
+            }
 
-            // Stop tracing when light is hit
-            break;
+            break; // Stop tracing when light is hit
         }
 
         vec3 hitPoint = currentRayOrigin + currentRayDir * t;
+        vec3 V = normalize(-currentRayDir);
+        float NdotV = max(dot(normal, V), 0.001);
 
-        // 1. Direct Illumination
+        // Base reflectivity for dielectrics is 4%, for metals it inherits the albedo color
+        vec3 F0 = mix(vec3(0.04), albedo, metallic);
+        float alpha = roughness * roughness;
+
+        // 2. Direct Illumination
         vec3 directLighting = vec3(0.0);
 
-        // Point Lights
+        // Point Lights (does not use MIS)
         for (int i = 0; i < numPointLights; i++)
         {
             vec3 toLight = pointLights[i].position - hitPoint;
@@ -376,75 +468,135 @@ vec3 tracePath(vec3 ro, vec3 rd)
                 // Cast shadow ray
                 if (!rayBlocked(hitPoint + normal * BIAS, L, dist))
                 {
-                    float attenRad = pointLights[i].attenuation;
-                    float attenuation = 1.0 / (dist2 + attenRad * attenRad);
+                    float attenuation = 1.0 / (dist2 + pointLights[i].attenuation * pointLights[i].attenuation);
                     vec3 lightIntensity = pointLights[i].color * pointLights[i].intensity * attenuation;
-                    // BRDF is albedo / PI
-                    directLighting += lightIntensity * NdotL * (albedo / M_PI);
+
+                    vec3 H = normalize(V + L);
+                    vec3 F = F_Schlick(max(dot(H, V), 0.0), F0);
+                    vec3 kS = F;
+                    vec3 kD = (1.0 - kS) * (1.0 - metallic);
+
+                    float D = D_GGX(max(dot(normal, H), 0.0), alpha);
+                    float G = G_Smith(NdotL, NdotV, alpha);
+                    vec3 specular = (D * G * F) / (4.0 * NdotL * NdotV + 0.001);
+                    
+                    directLighting += lightIntensity * NdotL * (kD * albedo / M_PI + specular);
                 }
             }
         }
-        // Quad Lights
+        // Quad Lights (uses MIS weighting)
         for (int i = 0; i < numQuadLights; i++)
         {
-            // Sample a random point on the light
-            float u1 = randomFloat();
-            float u2 = randomFloat();
-            vec3 lightPoint = quadLights[i].position + (quadLights[i].u * u1) + (quadLights[i].v * u2);
-
-            // Calculate distance and direction to light
+            vec2 r = vec2(randomFloat(), randomFloat());
+            vec3 lightPoint = quadLights[i].position + (quadLights[i].u * r.x) + (quadLights[i].v * r.y);
             vec3 toLight = lightPoint - hitPoint;
             float dist2 = dot(toLight, toLight);
             float dist = sqrt(dist2);
             vec3 L = toLight / dist;
+            float NdotL = max(dot(normal, L), 0.0);
 
             // Check if light is hitting the front of the surface
-            float NdotL = max(dot(normal, L), 0.0);
             if (NdotL > 0.0)
             {
                 // Calculate the normal of the light
                 vec3 lightNormal = normalize(cross(quadLights[i].u, quadLights[i].v));
-                // Check if the surface is facing the front of the light
                 float lightCos = max(dot(lightNormal, -L), 0.0);
 
+                // Check if the surface is facing the front of the light
                 if (lightCos > 0.0)
                 {
                     // Cast shadow ray
                     if (!rayBlocked(hitPoint + normal * BIAS, L, dist))
                     {
-                        float attenRad = quadLights[i].attenuation;
-                        float attenuation = 1.0 / (dist2 + attenRad * attenRad);
-                        vec3 lightIntensity = quadLights[i].color * quadLights[i].intensity * attenuation;
-                        // BRDF is albedo / PI
-                        directLighting += lightIntensity * NdotL * (albedo / M_PI);
+                        // Get PDF
+                        float pdfLight = dist2 / (quadLights[i].area * lightCos);
+
+                        // BRDF Evaluation
+                        vec3 H = normalize(V + L);
+                        float NdotH = max(dot(normal, H), 0.0);
+                        vec3 F = F_Schlick(max(dot(H, V), 0.0), F0);
+                        vec3 kS = F;
+                        vec3 kD = (1.0 - kS) * (1.0 - metallic);
+
+                        float D = D_GGX(NdotH, alpha);
+                        float G = G_Smith(NdotL, NdotV, alpha);
+                        vec3 specular = (D * G * F) / (4.0 * NdotL * NdotV + 0.001);
+                        vec3 brdf = (kD * albedo / M_PI) + specular;
+
+                        // Calculate the BRDF PDF for the MIS weight
+                        float pdfBrdfDiffuse = NdotL / M_PI;
+                        float pdfBrdfSpecular = PDF_VNDF_GGX(NdotH, NdotV, alpha);
+
+                        // Branchless probability interpolation based on metallicity
+                        float probabilitySpecular = mix(0.5, 1.0, metallic);
+                        float pdfBrdf = mix(pdfBrdfDiffuse, pdfBrdfSpecular, probabilitySpecular);
+
+                        float misWeight = balanceHeuristic(pdfLight, pdfBrdf);
+                        vec3 lightIntensity = quadLights[i].color * quadLights[i].intensity;
+                        directLighting += lightIntensity * brdf * NdotL * misWeight / pdfLight;
                     }
                 }
             }
         }
         radiance += throughput * directLighting;
 
-        // 2. Indirect Lighting (Monte Carlo)
+        // 3. Indirect Lighting (Monte Carlo)
         // Based on methods found in
         // "Global Illumination and Path Tracing: a Practical Implementation" by Jean-Colas Prunier https://www.scratchapixel.com/lessons/3d-basic-rendering/global-illumination-path-tracing/global-illumination-path-tracing-practical-implementation.html
-        float u1 = randomFloat();
-        float u2 = randomFloat();
-        vec3 localSample = cosineSampleHemisphere(u1, u2);
+        float probabilitySpecular = mix(0.5, 1.0, metallic);
+        bool doSpecular = randomFloat() < probabilitySpecular;
 
-        vec3 T, B;
-        buildOrthonormalBasis(normal, T, B);
+        vec3 nextDir;
+        if (doSpecular)
+        {
+            vec3 H = sampleVndf_GGX(vec2(randomFloat(), randomFloat()), V, alpha, normal);
+            nextDir = reflect(-V, H);
+            lastBounceSpecular = true;
+        }
+        else
+        {
+            vec2 r = vec2(randomFloat(), randomFloat());
+            vec3 localDir = cosineSampleHemisphere(r.x, r.y);
+            vec3 T, B;
+            buildOrthonormalBasis(normal, T, B);
+            nextDir = normalize(localDir.x * T + localDir.y * B + localDir.z * normal);
+            lastBounceSpecular = false;
+        }
 
-        // Transform local sample to world space
-        vec3 worldSample = localSample.x * T + localSample.y * B + localSample.z * normal;
+        float NdotL = max(dot(normal, nextDir), 0.0);
+        if (NdotL <= 0.0) break; // Path absorbed/occluded
 
-        // Setup the ray for the next iteration
-        currentRayDir = worldSample;
-        currentRayOrigin = hitPoint + normal * BIAS;
+        vec3 H = normalize(V + nextDir);
+        float NdotH = max(dot(normal, H), 0.0);
+        vec3 F = F_Schlick(max(dot(H, V), 0.0), F0);
+        vec3 kS = F;
+        vec3 kD = (1.0 - kS) * (1.0 - metallic);
 
-        throughput *= albedo;
+        float D = D_GGX(NdotH, alpha);
+        float G = G_Smith(NdotL, NdotV, alpha);
+        vec3 specular = (D * G * F) / (4.0 * NdotL * NdotV + 0.001);
+        vec3 diffuse = (kD * albedo / M_PI);
 
-        // Russian Roulette termination
-        float maxThroughput = max(max(throughput.x, throughput.y), throughput.z);
-        if (maxThroughput < 0.001) break;
+        float pdfDiffuse = NdotL / M_PI;
+        float pdfSpecular = PDF_VNDF_GGX(NdotH, NdotV, alpha);
+        lastPdfBrdf = mix(pdfDiffuse, pdfSpecular, probabilitySpecular);
+
+        if (lastPdfBrdf <= 0.0) break;
+
+        // Multiply throughput by BRDF. Divide by PDF
+        throughput *= (diffuse + specular) * NdotL / lastPdfBrdf;
+        currentRayDir = nextDir;
+        currentRayOrigin = hitPoint + normal + BIAS;
+
+        // 4. Unbiased Russian Roulette Path Termination
+        // Eliminates fixed-depth mathematical bias by statistically terminating
+        // paths based on accumulated energy and physically boosting the survivors
+        if (bounce > 3)
+        {
+            float pSurvival = clamp(max(throughput.r, max(throughput.g, throughput.b)), 0.05, 0.95);
+            if (randomFloat() > pSurvival) break;
+            throughput *= 1.0 / pSurvival; // Boost energy to maintain unbiased integral
+        }
     }
 
     return radiance;

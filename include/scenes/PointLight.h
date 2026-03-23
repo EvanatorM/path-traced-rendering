@@ -14,11 +14,12 @@ struct GPUPointLight
 
 struct PointLight : public SceneObject
 {
+    glm::vec3 color;
     float intensity;
     float attenuation;
 
     PointLight(const glm::vec3& pos = glm::vec3(0.0f), const glm::vec3& color = glm::vec3(1.0f), float intensity = 1.0f, float attenuation = 1.0f)
-        : SceneObject(pos, color), intensity(intensity), attenuation(attenuation) {}
+        : SceneObject(pos, 0), color(color), intensity(intensity), attenuation(attenuation) {}
 
     GPUPointLight GetGPUPointLight() const
     {

@@ -10,24 +10,25 @@ struct GPUQuadLight
     glm::vec3 u;
     float attenuation;
     glm::vec3 v;
-    float padding1;
+    uint32_t matIndex;
     glm::vec3 color;
-    float padding2;
+    float area;
 };
 #pragma pack()
 
 struct QuadLight : public SceneObject
 {
     glm::vec3 u, v;
+    glm::vec3 color;
     float intensity;
     float attenuation;
 
-    QuadLight(const glm::vec3& pos = glm::vec3(0.0f),  const glm::vec3& u = glm::vec3(1.0f, 0.0f, 0.0f), const glm::vec3& v = glm::vec3(0.0f, 1.0f, 0.0f), const glm::vec3& color = glm::vec3(1.0f), float intensity = 1.0f, float attenuation = 1.0f)
-        : SceneObject(pos, color), u(u), v(v), intensity(intensity), attenuation(attenuation) {}
+    QuadLight(const glm::vec3& pos = glm::vec3(0.0f),  const glm::vec3& u = glm::vec3(1.0f, 0.0f, 0.0f), const glm::vec3& v = glm::vec3(0.0f, 1.0f, 0.0f), uint32_t materialIndex = 0, const glm::vec3& color = glm::vec3(1.0f), float intensity = 1.0f, float attenuation = 1.0f)
+        : SceneObject(pos, materialIndex), color(color), u(u), v(v), intensity(intensity), attenuation(attenuation) {}
 
     GPUQuadLight GetGPUQuadLight() const
     {
-        return { position, intensity, u, attenuation, v, 0.0f, color, 0.0f };
+        return { position, intensity, u, attenuation, v, materialIndex, color, 1.0f };
 
     }
 };
