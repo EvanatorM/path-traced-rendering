@@ -46,7 +46,7 @@ int main()
     scene.AddSphere(Sphere(glm::vec3(-1.25f, -1.75f, -0.5f), 4, 0.75f));
     scene.AddCube(Cube(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(5.0f, 5.0f, 0.25f), 4));
 
-    scene.AddQuadLight(QuadLight(glm::vec3(-0.5f, 2.499f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1, glm::vec3(1.0f), 10.0f, 1.0f));
+    scene.AddQuadLight(QuadLight(glm::vec3(-0.5f, 2.499f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1, glm::vec3(1.0f), 15.0f, 1.0f));
 
     const unsigned int TEXTURE_WIDTH = 1920, TEXTURE_HEIGHT = 1080;
 
