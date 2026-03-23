@@ -405,7 +405,7 @@ vec3 tracePath(vec3 ro, vec3 rd)
 
     // State trackers for MIS
     float lastPdfBrdf = 1.0;
-    bool lastBounceSpecular = true;
+    bool lastBounceSpecular = false;
 
     for (int bounce = 0; bounce < MAX_BOUNCES; bounce++)
     {
@@ -432,7 +432,7 @@ vec3 tracePath(vec3 ro, vec3 rd)
         if (hitLight || length(emission) > 0.0)
         {
             // Only add emission if it's the first camera ray
-            if (bounce == 0)
+            if (bounce == 0 || lastBounceSpecular)
                 radiance += throughput * emission;
             else
             {
@@ -451,6 +451,20 @@ vec3 tracePath(vec3 ro, vec3 rd)
         vec3 hitPoint = currentRayOrigin + currentRayDir * t;
         vec3 V = normalize(-currentRayDir);
         float NdotV = max(dot(normal, V), 0.001);
+
+        if (roughness < 0.01) // Perfect mirror
+        {
+            vec3 nextDir = reflect(-V, normal);
+            vec3 F0 = mix(vec3(0.04), albedo, metallic);
+            vec3 F = F_Schlick(max(dot(normal, V), 0.0), F0);
+            throughput *= F;
+
+            currentRayDir = nextDir;
+            currentRayOrigin = hitPoint + normal * BIAS;
+
+            lastBounceSpecular = true;
+            continue;
+        }
 
         // Base reflectivity for dielectrics is 4%, for metals it inherits the albedo color
         vec3 F0 = mix(vec3(0.04), albedo, metallic);
@@ -556,7 +570,6 @@ vec3 tracePath(vec3 ro, vec3 rd)
         {
             vec3 H = sampleVndf_GGX(vec2(randomFloat(), randomFloat()), V, alpha, normal);
             nextDir = reflect(-V, H);
-            lastBounceSpecular = true;
         }
         else
         {
@@ -565,7 +578,6 @@ vec3 tracePath(vec3 ro, vec3 rd)
             vec3 T, B;
             buildOrthonormalBasis(normal, T, B);
             nextDir = normalize(localDir.x * T + localDir.y * B + localDir.z * normal);
-            lastBounceSpecular = false;
         }
 
         float NdotL = max(dot(normal, nextDir), 0.0);

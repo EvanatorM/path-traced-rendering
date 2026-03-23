@@ -31,10 +31,10 @@ int main()
     // Initialize scene (Cornell Box)
     Scene scene;
     scene.AddMaterial(Material(glm::vec3(1.0f), glm::vec3(0.0f), 1.0f, 0.0f));
-    scene.AddMaterial(Material(glm::vec3(1.0f), glm::vec3(1.0f), 0.5f, 0.1f));
+    scene.AddMaterial(Material(glm::vec3(1.0f), glm::vec3(1.0f), 1.0f, 0.0f));
     scene.AddMaterial(Material(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f, 0.0f));
     scene.AddMaterial(Material(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f), 1.0f, 0.0f));
-    scene.AddMaterial(Material(glm::vec3(1.0f), glm::vec3(0.0f), 0.05f, 1.0f));
+    scene.AddMaterial(Material(glm::vec3(1.0f), glm::vec3(0.0f), 0.0f, 1.0f));
 
     scene.AddPlane(Plane(glm::vec3(0.0f, -2.5f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), 0));
     scene.AddCube(Cube(glm::vec3(0.0f, 0.0f, -2.75f), glm::vec3(5.0f, 5.0f, 0.5f), 0));
@@ -43,8 +43,7 @@ int main()
     scene.AddCube(Cube(glm::vec3(2.75f, 0.0f, 0.0f), glm::vec3(0.5f, 5.0f, 5.0f), 3));
     scene.AddCube(Cube(glm::vec3(1.0f, -1.0f, -1.5f), glm::vec3(1.5f, 3.0f, 1.5f), 0));
     scene.AddSphere(Sphere(glm::vec3(-1.25f, -1.75f, -0.5f), 4, 0.75f));
-    scene.AddSphere(Sphere(glm::vec3(0.0f, -1.25f, 5.0f), 4, 1.25f));
-    //scene.AddCube(Cube(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(2.0f, 2.0f, 0.25f), 4));
+    scene.AddCube(Cube(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(5.0f, 5.0f, 0.25f), 4));
 
     scene.AddQuadLight(QuadLight(glm::vec3(-0.5f, 2.499f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1, glm::vec3(1.0f), 10.0f, 1.0f));
 
