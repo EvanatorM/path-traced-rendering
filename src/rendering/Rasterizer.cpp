@@ -2,6 +2,8 @@
 
 void Rasterizer::Render(const Camera& camera)
 {
+    auto materials = _scene.GetMaterials();
+
     auto pointLights = _scene.GetGPUPointLights();
     _pointLightBuffer.BufferData((const void*)pointLights.data(), sizeof(GPUPointLight) * pointLights.size());
     _pointLightBuffer.Bind(3);
@@ -23,14 +25,17 @@ void Rasterizer::Render(const Camera& camera)
 
     for (auto& plane : _scene.GetPlanes())
     {
+        _shader.SetVec3("color", materials[plane.materialIndex].albedo);
         plane.RenderRaster(_shader);
     }
     for (auto& sphere : _scene.GetSpheres())
     {
+        _shader.SetVec3("color", materials[sphere.materialIndex].albedo);
         sphere.RenderRaster(_shader);
     }
     for (auto& cube : _scene.GetCubes())
     {
+        _shader.SetVec3("color", materials[cube.materialIndex].albedo);
         cube.RenderRaster(_shader);
     }
 }

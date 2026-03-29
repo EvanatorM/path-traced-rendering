@@ -23,9 +23,9 @@ struct QuadLight {
     vec3 u;
     float attenuation;
     vec3 v;
-    float padding1;
+    uint matIndex;
     vec3 color;
-    float padding2;
+    float area;
 };
 
 layout(std430, binding = 3) buffer pointLightBuffer

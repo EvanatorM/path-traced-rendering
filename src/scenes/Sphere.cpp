@@ -11,7 +11,6 @@ void Sphere::RenderRaster(Shader& shader) const
     model = glm::translate(model, position);
     model = glm::scale(model, glm::vec3(radius * 2.0f));
     shader.SetMat4("model", model);
-    shader.SetVec3("color", glm::vec3(1.0f));
 
     mesh.Draw();
 }
