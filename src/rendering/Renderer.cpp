@@ -24,6 +24,11 @@ void Renderer::Shutdown()
     glfwTerminate();
 }
 
+void Renderer::SetVsync(bool state)
+{
+    glfwSwapInterval(state ? 1 : 0);
+}
+
 double Renderer::GetTime()
 {
     return glfwGetTime();

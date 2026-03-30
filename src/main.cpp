@@ -104,6 +104,9 @@ int main()
     float avgRenderTime = 0.0f;
     float renderTime = 0.0f;
 
+    bool vsync = true;
+    Renderer::SetVsync(vsync);
+
     while (!window.ShouldClose())
     {
         // Set frame time
@@ -177,6 +180,10 @@ int main()
         ImGui::Text("Pos: %f, %f, %f", camera->position.x, camera->position.y, camera->position.z);
         ImGui::Text("Dir: %f, %f, %f", camera->direction.x, camera->direction.y, camera->direction.z);
         ImGui::Checkbox("Path Traced", &pathTraced);
+        if (ImGui::Checkbox("Vsync", &vsync))
+        {
+            Renderer::SetVsync(vsync);
+        }
 
         UIManager::EndFrame();
 

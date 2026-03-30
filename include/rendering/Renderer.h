@@ -7,5 +7,7 @@ public:
     static void PostWindowInit();
     static void Shutdown();
 
+    static void SetVsync(bool state);
+
     static double GetTime();
 };
