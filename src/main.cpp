@@ -233,6 +233,7 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
+    if (paused) return;
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
     {
         Ray ray(camera->position, camera->Front());
