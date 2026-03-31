@@ -14,3 +14,32 @@ void Sphere::RenderRaster(Shader& shader) const
 
     mesh.Draw();
 }
+
+bool Sphere::OverlapRay(const Ray& ray, float& dist) const
+{
+    glm::vec3 L = position - ray.origin;
+    float tca = glm::dot(L, ray.direction);
+    if (tca < 0) return false;
+    float d2 = glm::dot(L, L) - tca * tca;
+    if (d2 > radius * radius) return false;
+    float thc = glm::sqrt(radius * radius - d2);
+    float t0 = tca - thc;
+    float t1 = tca + thc;
+
+    if (t0 > t1)
+    {
+        float tempT = t1;
+        t1 = t0;
+        t0 = tempT;
+    }
+
+    if (t0 < 0)
+    {
+        t0 = t1;
+        if (t0 < 0) return false;
+    }
+
+    dist = t0;
+
+    return true;
+}

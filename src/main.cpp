@@ -13,15 +13,20 @@
 #include <scenes/Sphere.h>
 #include <scenes/Plane.h>
 #include <UIManager.h>
+#include <Raycast.h>
 #include <imgui.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <chrono>
 
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 Camera* camera;
+Scene scene;
+
+PathTracer* pathTracer;
 
 bool paused = false;
 bool pathTraced = true;
@@ -29,7 +34,6 @@ bool pathTraced = true;
 int main()
 {
     // Initialize scene (Cornell Box)
-    Scene scene;
     scene.AddMaterial(Material(glm::vec3(1.0f), glm::vec3(0.0f), 1.0f, 0.0f));
     scene.AddMaterial(Material(glm::vec3(1.0f), glm::vec3(1.0f), 1.0f, 0.0f));
     scene.AddMaterial(Material(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f), 1.0f, 0.0f));
@@ -55,6 +59,7 @@ int main()
     Window::InitWindow(TEXTURE_WIDTH, TEXTURE_HEIGHT, "Path Traced Renderer");
     auto& window = Window::GetInstance();
     glfwSetCursorPosCallback(window.GetWindow(), mouseCallback);
+    glfwSetMouseButtonCallback(window.GetWindow(), mouseButtonCallback);
     glfwSetKeyCallback(window.GetWindow(), keyCallback);
 
     camera = new Camera(glm::vec3(0.0f, 0.0f, 4.5f), glm::vec3(0.0f, -90.0f, 0.0f), 70.0f, glm::vec3(0.1f));
@@ -85,7 +90,7 @@ int main()
     ComputeShader computeShader("assets/shaders/compute_shader.glsl");
 
     // Create Renderers
-    PathTracer pathTracer(scene, computeShader);
+    pathTracer = new PathTracer(scene, computeShader);
     Rasterizer rasterizer(scene, shapeShader);
 
     // Initialize ImGUI
@@ -153,7 +158,7 @@ int main()
 
         if (pathTraced)
         {
-            pathTracer.PathTrace(*camera, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            pathTracer->PathTrace(*camera, TEXTURE_WIDTH, TEXTURE_HEIGHT);
 
             // Render quad
             screenShader.Bind();
@@ -224,6 +229,20 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
         camera->direction.x = 89.0f;
     if(camera->direction.x < -89.0f)
         camera->direction.x = -89.0f;
+}
+
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        Ray ray(camera->position, camera->Front());
+        Raycast::RaycastResult result;
+        if (Raycast::Cast(scene, ray, 1000.0f, result))
+        {
+            if (scene.Destroy(result.objectHit))
+                pathTracer->ResetImage();
+        }
+    }
 }
 
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)

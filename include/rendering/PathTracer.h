@@ -18,4 +18,6 @@ public:
     PathTracer(Scene& scene, ComputeShader& computeShader) : _scene(scene), _computeShader(computeShader) {};
 
     void PathTrace(const Camera& camera, int width, int height);
+    
+    void ResetImage();
 };

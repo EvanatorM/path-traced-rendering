@@ -30,4 +30,6 @@ struct Sphere : public SceneObject
     {
         return { position, radius, glm::vec3(0.0f), materialIndex };
     }
+
+    bool OverlapRay(const Ray& ray, float& dist) const override;
 };

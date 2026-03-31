@@ -38,6 +38,30 @@ public:
         _quadLights.push_back(std::move(quadLight));
     }
 
+    bool Destroy(SceneObject* object)
+    {
+        // Do not allow destruction of planes
+        
+        for (int i = 0; i < _spheres.size(); i++)
+        {
+            if (&_spheres[i] == object)
+            {
+                _spheres.erase(_spheres.begin() + i);
+                return true;
+            }
+        }
+        for (int i = 0; i < _cubes.size(); i++)
+        {
+            if (&_cubes[i] == object)
+            {
+                _cubes.erase(_cubes.begin() + i);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     const std::vector<Material>& GetMaterials() const { return _materials; }
     
     const std::vector<Sphere>& GetSpheres() const { return _spheres; }
@@ -46,6 +70,20 @@ public:
 
     const std::vector<PointLight>& GetPointLights() const { return _pointLights; }
     const std::vector<QuadLight>& GetQuadLights() const { return _quadLights; }
+
+    std::vector<SceneObject*> GetSceneObjects() 
+    {
+        std::vector<SceneObject*> sceneObjects;
+
+        for (auto& sphere : _spheres)
+            sceneObjects.push_back(&sphere);
+        for (auto& plane : _planes)
+            sceneObjects.push_back(&plane);
+        for (auto& cube : _cubes)
+            sceneObjects.push_back(&cube);
+
+        return sceneObjects;
+    }
 
     std::vector<GPUMaterial> GetGPUMaterials() const
     {

@@ -28,4 +28,6 @@ struct Plane : public SceneObject
     {
         return { position, materialIndex, orientation, 0.0f };
     }
+    
+    bool OverlapRay(const Ray& ray, float& dist) const override;
 };

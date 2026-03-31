@@ -25,4 +25,6 @@ struct Cube : public SceneObject
     {
         return { glm::vec4(position, 0.0f), size, materialIndex };
     }
+    
+    bool OverlapRay(const Ray& ray, float& dist) const override;
 };

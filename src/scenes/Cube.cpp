@@ -14,3 +14,28 @@ void Cube::RenderRaster(Shader& shader) const
 
     mesh.Draw();
 }
+
+bool Cube::OverlapRay(const Ray& ray, float& dist) const
+{
+    glm::vec3 halfSize = size * 0.5f;
+    glm::vec3 bmin = position - halfSize;
+    glm::vec3 bmax = position + halfSize;
+
+    glm::vec3 t0 = (bmin - ray.origin) / ray.direction;
+    glm::vec3 t1 = (bmax - ray.origin) / ray.direction;
+
+    glm::vec3 tsmaller = glm::min(t0, t1);
+    glm::vec3 tbigger  = glm::max(t0, t1);
+
+    float tNear = glm::max(glm::max(tsmaller.x, tsmaller.y), tsmaller.z);
+    float tFar  = glm::min(glm::min(tbigger.x, tbigger.y), tbigger.z);
+
+    if (tNear > tFar || tFar < 0.0f)
+        return false;
+
+    dist = (tNear >= 0.0f) ? tNear : tFar;
+    if (dist < 0.0f)
+        return false;
+
+    return true;
+}

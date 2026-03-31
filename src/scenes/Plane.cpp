@@ -27,3 +27,19 @@ void Plane::RenderRaster(Shader& shader) const
 
     mesh.Draw();
 }
+
+bool Plane::OverlapRay(const Ray& ray, float& dist) const
+{
+    float denom = glm::dot(orientation, ray.direction);
+    if (denom > 1e-6)
+    {
+        glm::vec3 p010 = position - ray.origin;
+        dist = glm::dot(p010, orientation) / denom;
+
+        if (dist < 0) return false;
+
+        return true;
+    }
+
+    return false;
+}

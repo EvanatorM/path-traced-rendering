@@ -16,7 +16,7 @@ GPUBuffer::~GPUBuffer()
 
 void GPUBuffer::BufferData(const void* data, size_t dataSize)
 {
-    glNamedBufferStorage(_bufferId, dataSize, data, GL_DYNAMIC_STORAGE_BIT);
+    glNamedBufferData(_bufferId, static_cast<GLsizeiptr>(dataSize), data, GL_DYNAMIC_DRAW);
 }
 
 void GPUBuffer::Bind(int binding)
