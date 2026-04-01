@@ -109,7 +109,7 @@ int main()
     float avgRenderTime = 0.0f;
     float renderTime = 0.0f;
 
-    bool vsync = true;
+    bool vsync = false;
     Renderer::SetVsync(vsync);
 
     while (!window.ShouldClose())
@@ -242,6 +242,17 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         {
             if (scene.Destroy(result.objectHit))
                 pathTracer->ResetImage();
+        }
+    }
+    else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+    {
+        Ray ray(camera->position, camera->Front());
+        Raycast::RaycastResult result;
+        if (Raycast::Cast(scene, ray, 1000.0f, result))
+        {
+            glm::vec3 spawnPos = ray.origin + ray.direction * (result.dist - 1.0f);
+            scene.AddSphere(Sphere(spawnPos, 0, 1.0f));
+            pathTracer->ResetImage();
         }
     }
 }
