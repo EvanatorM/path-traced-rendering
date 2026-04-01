@@ -31,6 +31,9 @@ PathTracer* pathTracer;
 bool paused = false;
 bool pathTraced = true;
 
+float placementRadius = 0.5f;
+int placementMaterial = 0;
+
 int main()
 {
     // Initialize scene (Cornell Box)
@@ -189,6 +192,9 @@ int main()
         {
             Renderer::SetVsync(vsync);
         }
+        ImGui::Text("Placement");
+        ImGui::SliderFloat("Radius", &placementRadius, 0.1f, 2.0f);
+        ImGui::SliderInt("Material", &placementMaterial, 0, 5);
 
         UIManager::EndFrame();
 
@@ -250,8 +256,8 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         Raycast::RaycastResult result;
         if (Raycast::Cast(scene, ray, 1000.0f, result))
         {
-            glm::vec3 spawnPos = ray.origin + ray.direction * (result.dist - 1.0f);
-            scene.AddSphere(Sphere(spawnPos, 0, 1.0f));
+            glm::vec3 spawnPos = ray.origin + ray.direction * (result.dist - placementRadius);
+            scene.AddSphere(Sphere(spawnPos, placementMaterial, placementRadius));
             pathTracer->ResetImage();
         }
     }
