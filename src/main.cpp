@@ -31,7 +31,9 @@ PathTracer* pathTracer;
 bool paused = false;
 bool pathTraced = true;
 
+int placementShape = 0; // 0 for sphere, 1 for cube
 float placementRadius = 0.5f;
+float placementCubeSize[3] = { 1.0f, 1.0f, 1.0f };
 int placementMaterial = 0;
 
 int main()
@@ -193,7 +195,11 @@ int main()
             Renderer::SetVsync(vsync);
         }
         ImGui::Text("Placement");
-        ImGui::SliderFloat("Radius", &placementRadius, 0.1f, 2.0f);
+        ImGui::SliderInt("Shape", &placementShape, 0, 1);
+        if (placementShape == 0)
+            ImGui::SliderFloat("Sphere Radius", &placementRadius, 0.1f, 2.0f);
+        else
+            ImGui::SliderFloat3("Cube Size", placementCubeSize, 0.1f, 4.0f);
         ImGui::SliderInt("Material", &placementMaterial, 0, 5);
 
         UIManager::EndFrame();
@@ -256,8 +262,16 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         Raycast::RaycastResult result;
         if (Raycast::Cast(scene, ray, 1000.0f, result))
         {
-            glm::vec3 spawnPos = ray.origin + ray.direction * (result.dist - placementRadius);
-            scene.AddSphere(Sphere(spawnPos, placementMaterial, placementRadius));
+            if (placementShape == 0)
+            {
+                glm::vec3 spawnPos = ray.origin + ray.direction * (result.dist - placementRadius);
+                scene.AddSphere(Sphere(spawnPos, placementMaterial, placementRadius));
+            }
+            else
+            {
+                glm::vec3 spawnPos = ray.origin + ray.direction * (result.dist - (placementCubeSize[0] * 0.5f));
+                scene.AddCube(Cube(spawnPos, glm::vec3(placementCubeSize[0], placementCubeSize[1], placementCubeSize[2]), placementMaterial)); 
+            }
             pathTracer->ResetImage();
         }
     }
