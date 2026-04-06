@@ -22,6 +22,7 @@ _fetch_git_project(glad https://github.com/Dav1dde/glad.git 5bf3eda)
 
 add_executable(PathTracer
   src/rendering/render-objects/ComputeShader.cpp
+  src/rendering/render-objects/Framebuffer.cpp
   src/rendering/render-objects/GPUBuffer.cpp
   src/rendering/render-objects/Mesh.cpp
   src/rendering/render-objects/Shader.cpp
@@ -94,6 +95,10 @@ target_link_libraries(imgui_backend PUBLIC
   glfw
   OpenGL::GL
 )
+
+# Add STB Image
+_fetch_git_project(STBImage https://github.com/nothings/stb.git 28d546d)
+target_include_directories(${PROJECT_NAME} PRIVATE ${stbimage_SOURCE_DIR})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui_backend)
 target_include_directories(${PROJECT_NAME} PRIVATE ${imgui_backend_SOURCE_DIR})

@@ -5,6 +5,7 @@
 #include <rendering/render-objects/Mesh.h>
 #include <rendering/render-objects/Texture.h>
 #include <rendering/render-objects/GPUBuffer.h>
+#include <rendering/render-objects/Framebuffer.h>
 #include <rendering/PathTracer.h>
 #include <rendering/Renderer.h>
 #include <rendering/Rasterizer.h>
@@ -35,6 +36,8 @@ int placementShape = 0; // 0 for sphere, 1 for cube
 float placementRadius = 0.5f;
 float placementCubeSize[3] = { 1.0f, 1.0f, 1.0f };
 int placementMaterial = 0;
+
+int renderSamples = 1000;
 
 int main()
 {
@@ -201,6 +204,19 @@ int main()
         else
             ImGui::SliderFloat3("Cube Size", placementCubeSize, 0.1f, 4.0f);
         ImGui::SliderInt("Material", &placementMaterial, 0, 5);
+        ImGui::InputInt("Render Samples", &renderSamples);
+        if (ImGui::Button("Render Image"))
+        {
+            Framebuffer framebuffer;
+            framebuffer.StartRender(pathTracedTexture);
+            pathTracer->ResetImage();
+            for (int i = 0; i < renderSamples; i++)
+            {
+                pathTracer->PathTrace(*camera, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            }
+
+            framebuffer.SaveToFile("output.png", TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        }
 
         UIManager::EndFrame();
 

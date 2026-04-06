@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 
 Texture::Texture(int width, int height)
+    : _width(width), _height(height)
 {
     glGenTextures(1, &_textureId);
     glActiveTexture(GL_TEXTURE0);
