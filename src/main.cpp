@@ -273,7 +273,10 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         if (Raycast::Cast(scene, ray, 1000.0f, result))
         {
             if (scene.Destroy(result.objectHit))
+            {
                 pathTracer->ResetImage();
+                pathTracer->SetSceneDirty();
+            }
         }
     }
     else if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
@@ -293,6 +296,7 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
                 scene.AddCube(Cube(spawnPos, glm::vec3(placementCubeSize[0], placementCubeSize[1], placementCubeSize[2]), placementMaterial)); 
             }
             pathTracer->ResetImage();
+            pathTracer->SetSceneDirty();
         }
     }
 }
