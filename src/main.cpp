@@ -23,11 +23,13 @@
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void windowSizeCallback(GLFWwindow* window, int width, int height);
 
 Camera* camera;
 Scene scene;
 
 PathTracer* pathTracer;
+std::unique_ptr<Texture> pathTracedTexture;
 
 bool paused = false;
 bool pathTraced = true;
@@ -38,6 +40,8 @@ float placementCubeSize[3] = { 1.0f, 1.0f, 1.0f };
 int placementMaterial = 0;
 
 int renderSamples = 1000;
+
+unsigned int screenWidth = 1920, screenHeight = 1080;
 
 int main()
 {
@@ -60,20 +64,20 @@ int main()
 
     scene.AddQuadLight(QuadLight(glm::vec3(-0.5f, 2.499f, -0.5f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 1, glm::vec3(1.0f), 15.0f, 1.0f));
 
-    const unsigned int TEXTURE_WIDTH = 1920, TEXTURE_HEIGHT = 1080;
 
     // Create window
     Renderer::Init();
-    Window::InitWindow(TEXTURE_WIDTH, TEXTURE_HEIGHT, "Path Traced Renderer");
+    Window::InitWindow(screenWidth, screenHeight, "Path Traced Renderer");
     auto& window = Window::GetInstance();
     glfwSetCursorPosCallback(window.GetWindow(), mouseCallback);
     glfwSetMouseButtonCallback(window.GetWindow(), mouseButtonCallback);
     glfwSetKeyCallback(window.GetWindow(), keyCallback);
+    glfwSetWindowSizeCallback(window.GetWindow(), windowSizeCallback);
 
     camera = new Camera(glm::vec3(0.0f, 0.0f, 4.5f), glm::vec3(0.0f, -90.0f, 0.0f), 70.0f, glm::vec3(0.1f));
 
-    // Create test texture
-    Texture pathTracedTexture(TEXTURE_WIDTH, TEXTURE_HEIGHT);
+    // Create path texture
+    pathTracedTexture = std::make_unique<Texture>(screenWidth, screenHeight);
 
     // Create quad for displaying the texture
     Vertex vertices[] = {
@@ -166,11 +170,11 @@ int main()
 
         if (pathTraced)
         {
-            pathTracer->PathTrace(*camera, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            pathTracer->PathTrace(*camera, screenWidth, screenHeight);
 
             // Render quad
             screenShader.Bind();
-            pathTracedTexture.Bind(0);
+            pathTracedTexture->Bind(0);
             screenMesh.Draw();
         }
         else
@@ -208,14 +212,14 @@ int main()
         if (ImGui::Button("Render Image"))
         {
             Framebuffer framebuffer;
-            framebuffer.StartRender(pathTracedTexture);
+            framebuffer.StartRender(*pathTracedTexture);
             pathTracer->ResetImage();
             for (int i = 0; i < renderSamples; i++)
             {
-                pathTracer->PathTrace(*camera, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+                pathTracer->PathTrace(*camera, screenWidth, screenHeight);
             }
 
-            framebuffer.SaveToFile("output.png", TEXTURE_WIDTH, TEXTURE_HEIGHT);
+            framebuffer.SaveToFile("output.png", screenWidth, screenHeight);
         }
 
         UIManager::EndFrame();
@@ -303,4 +307,15 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         else
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
+}
+
+void windowSizeCallback(GLFWwindow* window, int width, int height)
+{
+    screenWidth = width;
+    screenHeight = height;
+
+    pathTracedTexture.reset();
+    pathTracedTexture = std::make_unique<Texture>(width, height);
+
+    pathTracer->ResetImage();
 }
