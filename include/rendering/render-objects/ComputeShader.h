@@ -10,6 +10,8 @@ public:
     ~ComputeShader();
 
     void Bind();
+    void Dispatch(uint32_t x, uint32_t y, uint32_t z);
+    void WaitForFinish();
 
     void SetBool(const char* name, bool value) const;
     void SetInt(const char* name, int value) const;

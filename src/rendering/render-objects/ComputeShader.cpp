@@ -65,6 +65,17 @@ void ComputeShader::Bind()
     glUseProgram(_programId);
 }
 
+void ComputeShader::Dispatch(uint32_t x, uint32_t y, uint32_t z)
+{
+    glUseProgram(_programId);
+    glDispatchCompute(x, y, z);
+}
+
+void ComputeShader::WaitForFinish()
+{
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+}
+
 void ComputeShader::SetBool(const char* name, bool value) const
 {
     glUniform1i(glGetUniformLocation(_programId, name), (int)value);

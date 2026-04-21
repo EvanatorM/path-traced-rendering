@@ -30,6 +30,7 @@ Scene scene;
 
 PathTracer* pathTracer;
 std::unique_ptr<Texture> pathTracedTexture;
+std::unique_ptr<Texture> screenTexture;
 
 bool paused = false;
 bool pathTraced = true;
@@ -78,6 +79,11 @@ int main()
 
     // Create path texture
     pathTracedTexture = std::make_unique<Texture>(screenWidth, screenHeight);
+    screenTexture = std::make_unique<Texture>(screenWidth, screenHeight);
+    pathTracedTexture->Bind(0);
+    pathTracedTexture->BindImage(0);
+    screenTexture->Bind(1);
+    screenTexture->BindImage(1);
 
     // Create quad for displaying the texture
     Vertex vertices[] = {
@@ -95,11 +101,13 @@ int main()
 
     // Load shaders
     Shader screenShader("assets/shaders/screen.vert", "assets/shaders/screen.frag");
-    screenShader.SetInt("tex", 0);
+    screenShader.Bind();
+    screenShader.SetInt("tex", 1);
 
     Shader shapeShader("assets/shaders/shape.vert", "assets/shaders/shape.frag");
 
     ComputeShader computeShader("assets/shaders/path_tracer.glsl");
+    ComputeShader bilateralFilter("assets/shaders/bilateral_filter.glsl");
 
     // Create Renderers
     pathTracer = new PathTracer(scene, computeShader);
@@ -172,9 +180,11 @@ int main()
         {
             pathTracer->PathTrace(*camera, screenWidth, screenHeight);
 
+            bilateralFilter.Dispatch((unsigned int)std::ceilf(screenWidth/16.0f), (unsigned int)std::ceilf(screenHeight/16.0f), 1);
+            bilateralFilter.WaitForFinish();
+
             // Render quad
             screenShader.Bind();
-            pathTracedTexture->Bind(0);
             screenMesh.Draw();
         }
         else
@@ -320,6 +330,12 @@ void windowSizeCallback(GLFWwindow* window, int width, int height)
 
     pathTracedTexture.reset();
     pathTracedTexture = std::make_unique<Texture>(width, height);
+    screenTexture.reset();
+    screenTexture = std::make_unique<Texture>(width, height);
+    pathTracedTexture->Bind(0);
+    pathTracedTexture->BindImage(0);
+    screenTexture->Bind(1);
+    screenTexture->BindImage(1);
 
     pathTracer->ResetImage();
 }
