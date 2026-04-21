@@ -99,7 +99,7 @@ int main()
 
     Shader shapeShader("assets/shaders/shape.vert", "assets/shaders/shape.frag");
 
-    ComputeShader computeShader("assets/shaders/compute_shader.glsl");
+    ComputeShader computeShader("assets/shaders/path_tracer.glsl");
 
     // Create Renderers
     pathTracer = new PathTracer(scene, computeShader);
