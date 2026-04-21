@@ -562,6 +562,7 @@ vec3 tracePath(vec3 ro, vec3 rd)
         // 3. Indirect Lighting (Monte Carlo)
         // Based on methods found in
         // "Global Illumination and Path Tracing: a Practical Implementation" by Jean-Colas Prunier https://www.scratchapixel.com/lessons/3d-basic-rendering/global-illumination-path-tracing/global-illumination-path-tracing-practical-implementation.html
+        // and "Chapter 1 - Monte Carlo Path Tracing" by Stanford
         float probabilitySpecular = mix(0.5, 1.0, metallic);
         bool doSpecular = randomFloat() < probabilitySpecular;
 
