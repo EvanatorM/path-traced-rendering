@@ -9,15 +9,17 @@ class PathTracer
 {
 private:
     Scene& _scene;
+    bool _sceneDirty;
     ComputeShader& _computeShader;
     GPUBuffer _sphereBuffer, _planeBuffer, _pointLightBuffer, _cubeBuffer, _quadLightBuffer, _materialBuffer;
     uint32_t _frameCount = 0;
     glm::vec3 _prevCamPos, _prevCamDir;
 
 public:
-    PathTracer(Scene& scene, ComputeShader& computeShader) : _scene(scene), _computeShader(computeShader) {};
+    PathTracer(Scene& scene, ComputeShader& computeShader) : _scene(scene), _sceneDirty(true), _computeShader(computeShader) {};
 
     void PathTrace(const Camera& camera, int width, int height);
     
     void ResetImage();
+    void SetSceneDirty();
 };
