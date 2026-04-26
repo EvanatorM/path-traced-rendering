@@ -13,6 +13,7 @@ public:
     ~Texture();
 
     void Bind(int slot);
+    void BindImage(int slot);
 
     unsigned int GetTextureId() const { return _textureId; }
     int GetWidth() const { return _width; }

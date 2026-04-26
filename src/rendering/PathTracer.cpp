@@ -67,8 +67,8 @@ void PathTracer::PathTrace(const Camera& camera, int width, int height)
         _sceneDirty = false;
     }
 
-    glDispatchCompute((unsigned int)std::ceilf(width/16.0f), (unsigned int)std::ceilf(height/16.0f), 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+    _computeShader.Dispatch((unsigned int)std::ceilf(width/16.0f), (unsigned int)std::ceilf(height/16.0f), 1);
+    _computeShader.WaitForFinish();
 }
 
 void PathTracer::ResetImage()

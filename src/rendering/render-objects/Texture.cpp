@@ -14,8 +14,6 @@ Texture::Texture(int width, int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-
-    glBindImageTexture(0, _textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 }
 
 Texture::~Texture()
@@ -56,4 +54,9 @@ void Texture::Bind(int slot)
             break;
     }
     glBindTexture(GL_TEXTURE_2D, _textureId);
+}
+
+void Texture::BindImage(int slot)
+{
+    glBindImageTexture(slot, _textureId, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 }
