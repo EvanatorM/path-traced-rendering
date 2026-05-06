@@ -11,7 +11,7 @@ macro(_fetch_git_project NAME REPO COMMIT)
   FetchContent_Declare(${NAME}
     GIT_REPOSITORY ${REPO}
     GIT_TAG        ${COMMIT}      # exact commit from lockfile
-    GIT_SHALLOW    TRUE
+    GIT_SHALLOW    FALSE
     UPDATE_DISCONNECTED FALSE
   )
   FetchContent_MakeAvailable(${NAME})
